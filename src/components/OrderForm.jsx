@@ -9,7 +9,7 @@ function todayStr() {
 }
 
 // ── 個別團購單卡片（清單用）─────────────────────────────────────
-function SessionCard({ session, sessionOrders, onOrder, onExtend, onClose, onReset, onContinue, isLeader }) {
+function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, onClose, onReset, onContinue, isLeader }) {
   const { isExpired, display, secondsLeft } = useCountdown(session.expiresAt);
   const [confirmClose, setConfirmClose] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -59,7 +59,10 @@ function SessionCard({ session, sessionOrders, onOrder, onExtend, onClose, onRes
       {isLeader && !isStale && (
         <div className="flex gap-2 flex-wrap">
           {!isExpired && (
-            <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs border border-blue-300 text-blue-500 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors" whileTap={{ scale: 0.95 }}>+15 分鐘</motion.button>
+            <>
+              <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs border border-blue-300 text-blue-500 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors" whileTap={{ scale: 0.95 }}>+15 分鐘</motion.button>
+              <motion.button onClick={() => onProxyOrder(session.id)} className="text-xs border border-purple-300 text-purple-500 px-3 py-1 rounded-lg hover:bg-purple-50 transition-colors" whileTap={{ scale: 0.95 }}>👥 代點</motion.button>
+            </>
           )}
           <motion.button onClick={() => setConfirmClose(true)} className="text-xs border border-gray-300 text-gray-500 px-3 py-1 rounded-lg hover:bg-gray-50 transition-colors" whileTap={{ scale: 0.95 }}>關閉</motion.button>
           <motion.button onClick={() => setConfirmReset(true)} className="text-xs border border-red-200 text-red-400 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors" whileTap={{ scale: 0.95 }}>重置</motion.button>
@@ -199,7 +202,7 @@ function CreateSessionForm({ shops, onStartSession, onBack }) {
 }
 
 // ── 點餐表單──────────────────────────────────────────────────────
-function OrderFormContent({ session, shop, onAddOrder, onBack, savedName }) {
+function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProxy }) {
   const { isExpired, display, secondsLeft } = useCountdown(session.expiresAt);
   const [name, setName] = useState(savedName || '');
   const [selectedItem, setSelectedItem] = useState(null);
@@ -263,6 +266,12 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName }) {
           <span className={`font-bold ${timeColor}`}>{isExpired ? '已截止' : display}</span>
         </div>
       </div>
+
+      {isProxy && (
+        <div className="bg-purple-50 border border-purple-300 rounded-xl px-4 py-2.5 mb-3 text-sm text-purple-700 font-medium">
+          👥 代點模式 — 請填入對方姓名
+        </div>
+      )}
 
       <AnimatePresence>
         {!isExpired && secondsLeft <= 120 && (
@@ -412,6 +421,7 @@ export default function OrderForm({
   const [view, setView] = useState('list');
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [submittedFor, setSubmittedFor] = useState(null);
+  const [isProxy, setIsProxy] = useState(false);
 
   const selectedSession = activeSessions.find((s) => s.id === selectedSessionId);
 
@@ -438,7 +448,8 @@ export default function OrderForm({
       <OrderFormContent
         session={selectedSession}
         shop={shop}
-        savedName={getUserName ? getUserName() : ''}
+        savedName={isProxy ? '' : (getUserName ? getUserName() : '')}
+        isProxy={isProxy}
         onAddOrder={(orderData) => {
           onAddOrder(orderData, selectedSessionId);
           if (onSaveUserName) onSaveUserName(orderData.name);
@@ -513,7 +524,8 @@ export default function OrderForm({
             key={s.id}
             session={s}
             sessionOrders={getActiveSessionOrders(s.id)}
-            onOrder={(id) => { setSelectedSessionId(id); setView('order'); }}
+            onOrder={(id) => { setSelectedSessionId(id); setIsProxy(false); setView('order'); }}
+            onProxyOrder={(id) => { setSelectedSessionId(id); setIsProxy(true); setView('order'); }}
             onExtend={onExtendSession}
             onClose={onCloseSession}
             onReset={onResetSession}

@@ -22,6 +22,7 @@ export function useStore() {
   const [activeSessions, setActiveSessions] = useState([]);
   const [histSessions, setHistSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [announcementText, setAnnouncementText] = useState('');
 
   // 追蹤各 listener 是否已收到第一次資料
   const seen = useRef({ shops: false, active: false, hist: false, orders: false });
@@ -74,6 +75,11 @@ export function useStore() {
     unsubs.push(onSnapshot(collection(db, 'orders'), (snap) => {
       setOrders(snap.docs.map((d) => ({ ...d.data(), id: d.id })));
       tick('orders');
+    }));
+
+    // ── 系統公告（非阻塞載入）───────────────────────────────────
+    unsubs.push(onSnapshot(doc(db, 'config', 'announcement'), (snap) => {
+      setAnnouncementText(snap.exists() ? (snap.data().text || '') : '');
     }));
 
     return () => unsubs.forEach((u) => u());
@@ -172,6 +178,14 @@ export function useStore() {
     await batch.commit();
   }
 
+  async function updateOrder(orderId, data) {
+    await updateDoc(doc(db, 'orders', orderId), data);
+  }
+
+  async function setAnnouncement(text) {
+    await setDoc(doc(db, 'config', 'announcement'), { text });
+  }
+
   async function removeHistorySession(sessionId) {
     const batch = writeBatch(db);
     batch.delete(doc(db, 'sessions', sessionId));
@@ -237,7 +251,10 @@ export function useStore() {
     extendSession,
     addOrder,
     removeOrder,
+    updateOrder,
     removeHistorySession,
+    announcement: announcementText,
+    setAnnouncement,
     addShop,
     removeShop,
     addMenuItem,

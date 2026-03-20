@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 
-export default function MenuManager({ shops, onAddShop, onRemoveShop, onAddMenuItem, onRemoveMenuItem, onResetShops, onImportMenuItems }) {
+export default function MenuManager({ shops, onAddShop, onRemoveShop, onAddMenuItem, onRemoveMenuItem, onResetShops, onImportMenuItems, announcement, onSetAnnouncement }) {
   const [selectedShopId, setSelectedShopId] = useState(shops[0]?.id || '');
+  const [announcementInput, setAnnouncementInput] = useState(announcement || '');
   const [newShopName, setNewShopName] = useState('');
   const [showAddShop, setShowAddShop] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', price: '', sizeL: '' });
@@ -98,6 +99,30 @@ export default function MenuManager({ shops, onAddShop, onRemoveShop, onAddMenuI
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+      {/* 系統公告 */}
+      <div className="bg-white rounded-xl shadow p-4">
+        <h3 className="font-semibold text-gray-700 mb-3">📢 系統公告</h3>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="輸入公告內容（留空表示關閉公告）"
+            value={announcementInput}
+            onChange={(e) => setAnnouncementInput(e.target.value)}
+            className="flex-1 border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+          />
+          <button
+            onClick={() => onSetAnnouncement(announcementInput)}
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+          >儲存</button>
+        </div>
+        {announcement && (
+          <div className="mt-2 bg-amber-50 rounded-lg px-3 py-2 text-sm text-amber-700 flex justify-between items-center">
+            <span>目前：{announcement}</span>
+            <button onClick={() => { onSetAnnouncement(''); setAnnouncementInput(''); }} className="text-gray-400 hover:text-red-400 ml-2 text-lg leading-none">×</button>
+          </div>
+        )}
+      </div>
+
       {/* 店家切換 */}
       <div className="bg-white rounded-xl shadow p-4">
         <div className="flex items-center gap-2 mb-3">

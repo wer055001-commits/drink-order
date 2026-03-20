@@ -2,6 +2,135 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import StatsCard from './StatsCard';
 
+// ── 修改訂單 Modal ────────────────────────────────────────────────
+function EditOrderModal({ order, shop, onSave, onClose }) {
+  const [selectedItem, setSelectedItem] = useState(shop?.menu.find((m) => m.name === order.drink) || null);
+  const [size, setSize] = useState(order.size);
+  const [sugar, setSugar] = useState(order.sugar);
+  const [ice, setIce] = useState(order.ice);
+  const [toppings, setToppings] = useState(order.toppings || []);
+  const [note, setNote] = useState(order.note || '');
+
+  function calcPrice() {
+    if (!selectedItem) return order.price;
+    const sizeObj = selectedItem.sizes.find((s) => s.label === size);
+    return selectedItem.price + (sizeObj?.add || 0);
+  }
+
+  function toggleTopping(t) {
+    setToppings((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
+  }
+
+  function handleSave() {
+    if (!selectedItem) return;
+    onSave({ drink: selectedItem.name, size, sugar, ice, toppings, price: calcPrice(), note: note.trim() });
+    onClose();
+  }
+
+  if (!shop) return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <motion.div
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-4"
+        initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-gray-800 text-lg">✏️ 修改訂單</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-2">飲料</label>
+          <div className="grid grid-cols-2 gap-2">
+            {shop.menu.map((item) => (
+              <button type="button" key={item.id}
+                onClick={() => { setSelectedItem(item); setSize(item.sizes[0]?.label || ''); setToppings([]); }}
+                className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}
+              >
+                <div className="font-medium text-gray-800 text-sm">{item.name}</div>
+                <div className="text-xs text-orange-500">NT${item.price}起</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedItem && selectedItem.sizes.length > 1 && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-600 mb-2">尺寸</label>
+            <div className="flex gap-2">
+              {selectedItem.sizes.map((s) => (
+                <button type="button" key={s.label} onClick={() => setSize(s.label)}
+                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${size === s.label ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600'}`}
+                >{s.label} {s.add > 0 ? `+${s.add}` : ''}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-2">甜度</label>
+          <div className="flex flex-wrap gap-2">
+            {shop.options.sugar.map((s) => (
+              <button type="button" key={s} onClick={() => setSugar(s)}
+                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${sugar === s ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-300 text-gray-600'}`}
+              >{s}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-2">冰塊</label>
+          <div className="flex flex-wrap gap-2">
+            {shop.options.ice.map((ic) => (
+              <button type="button" key={ic} onClick={() => setIce(ic)}
+                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${ice === ic ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300 text-gray-600'}`}
+              >{ic}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-2">加料（可多選）</label>
+          <div className="flex flex-wrap gap-2">
+            {shop.options.toppings.map((t) => (
+              <button type="button" key={t} onClick={() => toggleTopping(t)}
+                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500 text-white' : 'border-gray-300 text-gray-600'}`}
+              >{t}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-2">備註（選填）</label>
+          <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="其他特殊需求..."
+            className="w-full border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-300"
+          />
+        </div>
+
+        {selectedItem && (
+          <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-sm text-orange-800">
+            {selectedItem.name}（{size}）・{sugar}・{ice}
+            {toppings.length > 0 && `・+${toppings.join('、')}`}
+            <span className="font-bold ml-2">NT${calcPrice()}</span>
+          </div>
+        )}
+
+        <button onClick={handleSave}
+          className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+        >儲存修改</button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function buildCopyText(orders, session) {
   if (!orders.length) return '';
   const shopName = session?.shopName || orders[0]?.shopName || '';
@@ -19,11 +148,13 @@ function buildCopyText(orders, session) {
 }
 
 // ── 單一 session 的訂單區塊 ───────────────────────────────────────
-function SessionSummary({ session, orders, onRemoveOrder, onClose, onReset, isLeader, myName }) {
+function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, onClose, onReset, isLeader, myName }) {
   const [copied, setCopied] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [filterMine, setFilterMine] = useState(!isLeader);
+  const [editingOrder, setEditingOrder] = useState(null);
+  const isSessionOpen = new Date(session.expiresAt) > new Date();
 
   const displayOrders = filterMine && myName ? orders.filter((o) => o.name === myName) : orders;
   const total = displayOrders.reduce((sum, o) => sum + o.price, 0);
@@ -152,8 +283,14 @@ function SessionSummary({ session, orders, onRemoveOrder, onClose, onReset, isLe
                       {order.note && `・${order.note}`}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <span className="text-orange-500 font-bold">NT${order.price}</span>
+                    {!isLeader && order.name === myName && isSessionOpen && onUpdateOrder && (
+                      <motion.button onClick={() => setEditingOrder(order)}
+                        className="text-xs text-blue-500 border border-blue-300 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                        whileTap={{ scale: 0.95 }}
+                      >編輯</motion.button>
+                    )}
                     {isLeader && (
                       <motion.button onClick={() => onRemoveOrder(order.id)}
                         className="text-gray-300 hover:text-red-500 text-lg leading-none transition-colors" title="刪除"
@@ -167,6 +304,18 @@ function SessionSummary({ session, orders, onRemoveOrder, onClose, onReset, isLe
           </AnimatePresence>
         </div>
       )}
+
+      {/* 修改訂單 Modal */}
+      <AnimatePresence>
+        {editingOrder && (
+          <EditOrderModal
+            order={editingOrder}
+            shop={shop}
+            onSave={(data) => onUpdateOrder(editingOrder.id, data)}
+            onClose={() => setEditingOrder(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* 複製預覽（折疊） */}
       {orders.length > 0 && isLeader && (
@@ -279,8 +428,8 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory }) {
 export default function OrderSummary({
   activeSessions, getActiveSessionOrders,
   pastSessions, getSessionOrders,
-  onRemoveOrder, onCloseSession, onResetSession, onRemoveHistory,
-  isLeader, getUserName,
+  onRemoveOrder, onUpdateOrder, onCloseSession, onResetSession, onRemoveHistory,
+  isLeader, getUserName, shops,
 }) {
   const myName = getUserName ? getUserName() : '';
 
@@ -307,7 +456,7 @@ export default function OrderSummary({
     >
       {!isLeader && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-sm text-blue-700 text-center">
-          目前為唯讀模式，僅可查看訂單
+          你可以在截止前點擊「編輯」修改自己的訂單
         </div>
       )}
 
@@ -320,8 +469,10 @@ export default function OrderSummary({
         <SessionSummary
           key={session.id}
           session={session}
+          shop={shops?.find((s) => s.id === session.shopId)}
           orders={getActiveSessionOrders(session.id)}
           onRemoveOrder={onRemoveOrder}
+          onUpdateOrder={onUpdateOrder}
           onClose={onCloseSession}
           onReset={onResetSession}
           isLeader={isLeader}

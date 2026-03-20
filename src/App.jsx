@@ -29,7 +29,10 @@ export default function App() {
     extendSession,
     addOrder,
     removeOrder,
+    updateOrder,
     removeHistorySession,
+    announcement,
+    setAnnouncement,
     addShop,
     removeShop,
     addMenuItem,
@@ -80,6 +83,16 @@ export default function App() {
         onLogout={handleLogout}
       />
 
+      {announcement && (
+        <motion.div
+          className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center text-sm text-amber-800 font-medium"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+        >
+          📢 {announcement}
+        </motion.div>
+      )}
+
       <main className="pb-24">
         <AnimatePresence mode="wait">
           {activeTab === 'order' && (
@@ -108,11 +121,13 @@ export default function App() {
                 pastSessions={pastSessions}
                 getSessionOrders={getSessionOrders}
                 onRemoveOrder={removeOrder}
+                onUpdateOrder={updateOrder}
                 onCloseSession={closeSession}
                 onResetSession={resetSession}
                 onRemoveHistory={removeHistorySession}
                 isLeader={isLeader}
                 getUserName={getUserName}
+                shops={shops}
               />
             </motion.div>
           )}
@@ -135,6 +150,8 @@ export default function App() {
                 onRemoveMenuItem={removeMenuItem}
                 onImportMenuItems={importMenuItems}
                 onResetShops={resetShops}
+                announcement={announcement}
+                onSetAnnouncement={setAnnouncement}
               />
             </motion.div>
           )}
