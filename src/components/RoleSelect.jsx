@@ -31,7 +31,7 @@ export default function RoleSelect({ onSelect }) {
     const next = logoTaps + 1;
     setLogoTaps(next);
     if (next >= 5) {
-      setShowAdmin(true);
+      onSelect('admin', remember);
       setLogoTaps(0);
     }
   }
