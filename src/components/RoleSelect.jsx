@@ -1,16 +1,7 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const ROLE_CONFIG = [
-  {
-    key: 'admin',
-    icon: '🔧',
-    title: '管理者',
-    desc: '可管理菜單、店家設定，擁有所有功能',
-    border: 'border-red-400',
-    bg: 'hover:bg-red-50',
-    accent: 'text-red-500',
-  },
+const VISIBLE_ROLES = [
   {
     key: 'leader',
     icon: '📋',
@@ -33,6 +24,17 @@ const ROLE_CONFIG = [
 
 export default function RoleSelect({ onSelect }) {
   const [remember, setRemember] = useState(false);
+  const [logoTaps, setLogoTaps] = useState(0);
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  function handleLogoTap() {
+    const next = logoTaps + 1;
+    setLogoTaps(next);
+    if (next >= 5) {
+      setShowAdmin(true);
+      setLogoTaps(0);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center px-4">
@@ -44,9 +46,10 @@ export default function RoleSelect({ onSelect }) {
           transition={{ duration: 0.5 }}
         >
           <motion.div
-            className="text-6xl mb-3"
+            className="text-6xl mb-3 cursor-pointer select-none inline-block"
             animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
             transition={{ delay: 0.3, duration: 0.6 }}
+            onClick={handleLogoTap}
           >
             🧋
           </motion.div>
@@ -55,7 +58,7 @@ export default function RoleSelect({ onSelect }) {
         </motion.div>
 
         <div className="space-y-3">
-          {ROLE_CONFIG.map((r, i) => (
+          {VISIBLE_ROLES.map((r, i) => (
             <motion.button
               key={r.key}
               onClick={() => onSelect(r.key, remember)}
@@ -76,6 +79,30 @@ export default function RoleSelect({ onSelect }) {
               </div>
             </motion.button>
           ))}
+
+          <AnimatePresence>
+            {showAdmin && (
+              <motion.button
+                onClick={() => onSelect('admin', remember)}
+                className="w-full bg-white rounded-2xl border-2 border-red-400 hover:bg-red-50 p-4 text-left shadow-sm"
+                initial={{ opacity: 0, height: 0, scale: 0.9 }}
+                animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                whileHover={{ scale: 1.02, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🔧</span>
+                  <div className="flex-1">
+                    <div className="font-bold text-red-500">管理者</div>
+                    <p className="text-sm text-gray-500 mt-0.5">可管理菜單、店家設定，擁有所有功能</p>
+                  </div>
+                  <span className="text-gray-300 text-lg">›</span>
+                </div>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
 
         <motion.label
