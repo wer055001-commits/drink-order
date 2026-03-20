@@ -199,9 +199,9 @@ function CreateSessionForm({ shops, onStartSession, onBack }) {
 }
 
 // ── 點餐表單──────────────────────────────────────────────────────
-function OrderFormContent({ session, shop, onAddOrder, onBack }) {
+function OrderFormContent({ session, shop, onAddOrder, onBack, savedName }) {
   const { isExpired, display, secondsLeft } = useCountdown(session.expiresAt);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(savedName || '');
   const [selectedItem, setSelectedItem] = useState(null);
   const [size, setSize] = useState('');
   const [sugar, setSugar] = useState('全糖');
@@ -407,7 +407,7 @@ export default function OrderForm({
   shops, activeSessions,
   onStartSession, onAddOrder,
   onCloseSession, onResetSession, onContinueSession, onExtendSession,
-  getActiveSessionOrders, isLeader, onSaveUserName,
+  getActiveSessionOrders, isLeader, onSaveUserName, getUserName,
 }) {
   const [view, setView] = useState('list');
   const [selectedSessionId, setSelectedSessionId] = useState(null);
@@ -438,11 +438,12 @@ export default function OrderForm({
       <OrderFormContent
         session={selectedSession}
         shop={shop}
+        savedName={getUserName ? getUserName() : ''}
         onAddOrder={(orderData) => {
           onAddOrder(orderData, selectedSessionId);
           if (onSaveUserName) onSaveUserName(orderData.name);
           setSubmittedFor(selectedSessionId);
-          setTimeout(() => setSubmittedFor(null), 3000);
+          setTimeout(() => setSubmittedFor(null), 2000);
           setView('list');
         }}
         onBack={() => setView('list')}
@@ -459,13 +460,27 @@ export default function OrderForm({
       <AnimatePresence>
         {submittedFor && (
           <motion.div
-            className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <p className="text-green-700 font-bold text-lg">✅ 訂單已送出！</p>
-            <p className="text-green-600 text-sm mt-1">下一位可以開始點了</p>
+            <motion.div
+              className="bg-white rounded-3xl px-12 py-10 text-center shadow-2xl"
+              initial={{ scale: 0.4, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+            >
+              <motion.div
+                className="text-7xl mb-4"
+                animate={{ rotate: [0, -15, 15, -8, 8, 0], scale: [1, 1.15, 1] }}
+                transition={{ delay: 0.15, duration: 0.6 }}
+              >✅</motion.div>
+              <p className="text-2xl font-bold text-gray-800">訂單送出！</p>
+              <p className="text-gray-500 mt-2 text-sm">下一位可以開始點了</p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -5,9 +5,13 @@
 body {
   margin: 0;
   font-family: 'Noto Sans TC', system-ui, sans-serif;
-  background-color: #fdf6ee;
-  background-image: radial-gradient(#f97316 0.8px, transparent 0.8px);
-  background-size: 24px 24px;
+  background-color: #fdf8f3;
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(251, 146, 60, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(254, 215, 170, 0.15) 0%, transparent 60%),
+    radial-gradient(#f97316 0.4px, transparent 0.4px);
+  background-size: auto, auto, auto, 18px 18px;
   background-attachment: fixed;
   min-height: 100vh;
 }

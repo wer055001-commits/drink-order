@@ -96,6 +96,7 @@ export default function App() {
                 getActiveSessionOrders={getActiveSessionOrders}
                 isLeader={isLeader}
                 onSaveUserName={saveUserName}
+                getUserName={getUserName}
               />
             </motion.div>
           )}
