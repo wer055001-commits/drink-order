@@ -51,6 +51,11 @@ export default function App() {
     setActiveTab('order');
   }
 
+  function handleSwitchRole(newRole) {
+    login(newRole, false);
+    setActiveTab('order');
+  }
+
   if (!role) return <RoleSelect onSelect={handleLogin} />;
 
   if (loading) {
@@ -81,6 +86,7 @@ export default function App() {
         ordersCount={totalActiveOrdersCount}
         role={role}
         onLogout={handleLogout}
+        onSwitchRole={handleSwitchRole}
       />
 
       {announcement && (

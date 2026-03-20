@@ -4,8 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 const ROLE_LABELS = { admin: '管理者', leader: '團主', user: '使用者' };
 const ROLE_COLORS = { admin: 'bg-red-200 text-red-800', leader: 'bg-orange-200 text-orange-800', user: 'bg-blue-200 text-blue-800' };
 
-export default function Header({ activeSessions, ordersCount, role, onLogout }) {
-  const [showConfirm, setShowConfirm] = useState(false);
+const SWITCH_OPTIONS = [
+  { key: 'leader', icon: '📋', label: '團主', color: 'text-orange-500' },
+  { key: 'user',   icon: '🧋', label: '使用者', color: 'text-blue-500' },
+];
+
+export default function Header({ activeSessions, ordersCount, role, onLogout, onSwitchRole }) {
+  const [showMenu, setShowMenu] = useState(false);
 
   return (
     <header className="bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg">
@@ -29,34 +34,39 @@ export default function Header({ activeSessions, ordersCount, role, onLogout }) 
 
           <div className="relative">
             <motion.button
-              onClick={() => setShowConfirm((v) => !v)}
+              onClick={() => setShowMenu((v) => !v)}
               className={`text-xs font-semibold px-3 py-1.5 rounded-full ${ROLE_COLORS[role] || 'bg-white text-orange-700'}`}
               whileTap={{ scale: 0.95 }}
             >
-              {ROLE_LABELS[role] || ''} ↩
+              {ROLE_LABELS[role] || ''} ↓
             </motion.button>
             <AnimatePresence>
-              {showConfirm && (
+              {showMenu && (
                 <motion.div
-                  className="absolute right-0 top-9 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 z-50 w-36"
+                  className="absolute right-0 top-9 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 w-40"
                   initial={{ opacity: 0, scale: 0.9, y: -8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: -8 }}
                   transition={{ duration: 0.15 }}
                 >
-                  <p className="text-xs text-gray-500 mb-2 text-center">切換身分？</p>
-                  <div className="flex gap-2">
+                  <p className="text-xs text-gray-400 px-3 pb-2">切換身分</p>
+                  {SWITCH_OPTIONS.filter((o) => o.key !== role).map((o) => (
                     <button
-                      onClick={() => { onLogout(); setShowConfirm(false); }}
-                      className="flex-1 bg-red-500 text-white text-xs py-1.5 rounded-lg font-medium hover:bg-red-600 transition-colors"
+                      key={o.key}
+                      onClick={() => { onSwitchRole(o.key); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left"
                     >
-                      切換
+                      <span>{o.icon}</span>
+                      <span className={`text-sm font-medium ${o.color}`}>{o.label}</span>
                     </button>
+                  ))}
+                  <div className="border-t border-gray-100 mt-1 pt-1">
                     <button
-                      onClick={() => setShowConfirm(false)}
-                      className="flex-1 bg-gray-100 text-gray-600 text-xs py-1.5 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                      onClick={() => { onLogout(); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-50 transition-colors text-left"
                     >
-                      取消
+                      <span>🚪</span>
+                      <span className="text-sm font-medium text-red-500">登出</span>
                     </button>
                   </div>
                 </motion.div>
