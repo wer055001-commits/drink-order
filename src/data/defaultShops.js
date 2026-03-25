@@ -12,6 +12,7 @@ export const DEFAULT_SHOPS = [
   {
     id: '50lan',
     name: '50嵐',
+    phone: '',
     menu: [
       { id: 'il-1',  name: '茉莉綠茶',           price: 35, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 5 }] },
       { id: 'il-2',  name: '阿薩姆紅茶',         price: 35, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 5 }] },
@@ -41,6 +42,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'qingxin',
     name: '清心福全',
+    phone: '',
     menu: [
       { id: 'qx-1',  name: '珍珠奶茶',           price: 45, sizes: [{ label: '中', add: 0 }, { label: '大', add: 10 }] },
       { id: 'qx-2',  name: '鮮奶茶',             price: 55, sizes: [{ label: '中', add: 0 }, { label: '大', add: 15 }] },
@@ -69,6 +71,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'coco',
     name: 'CoCo 都可',
+    phone: '',
     menu: [
       { id: 'cc-1',  name: '珍珠奶茶',           price: 55, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 10 }] },
       { id: 'cc-2',  name: '波霸奶茶',           price: 60, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 10 }] },
@@ -96,6 +99,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'tptea',
     name: '茶湯會',
+    phone: '',
     menu: [
       { id: 'tp-1',  name: '翡翠檸檬',           price: 55, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 10 }] },
       { id: 'tp-2',  name: '觀音拿鐵',           price: 60, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 10 }] },
@@ -120,6 +124,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'gongcha',
     name: '貢茶',
+    phone: '',
     menu: [
       { id: 'gc-1',  name: '貢茶奶蓋綠',         price: 65, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 15 }] },
       { id: 'gc-2',  name: '貢茶奶蓋紅',         price: 65, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 15 }] },
@@ -144,6 +149,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'milksha',
     name: '迷客夏',
+    phone: '',
     menu: [
       { id: 'mk-1',  name: '珍珠手炒黑糖鮮奶',   price: 75, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 20 }] },
       { id: 'mk-2',  name: '黑糖鮮奶',           price: 70, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 20 }] },
@@ -168,6 +174,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'dayunzi',
     name: '大苑子',
+    phone: '',
     menu: [
       { id: 'dy-1',  name: '芋頭牛奶',           price: 70, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 15 }] },
       { id: 'dy-2',  name: '冬瓜牛奶',           price: 65, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 10 }] },
@@ -191,6 +198,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'zhenzhudan',
     name: '珍煮丹',
+    phone: '',
     menu: [
       { id: 'zzd-1',  name: '黑糖虎珠鮮奶',      price: 80, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 20 }] },
       { id: 'zzd-2',  name: '黑糖珍珠鮮奶',      price: 75, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 20 }] },
@@ -212,6 +220,7 @@ export const DEFAULT_SHOPS = [
   {
     id: 'magu',
     name: '麻古茶坊',
+    phone: '',
     menu: [
       { id: 'mg-1',  name: '珍珠奶茶',           price: 55, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 10 }] },
       { id: 'mg-2',  name: '黑糖珍珠鮮奶',       price: 75, sizes: [{ label: 'M', add: 0 }, { label: 'L', add: 15 }] },

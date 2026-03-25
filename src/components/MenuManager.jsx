@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 
-export default function MenuManager({ shops, onAddShop, onRemoveShop, onAddMenuItem, onRemoveMenuItem, onResetShops, onImportMenuItems, announcement, onSetAnnouncement }) {
+export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveShop, onAddMenuItem, onRemoveMenuItem, onResetShops, onImportMenuItems, announcement, onSetAnnouncement }) {
   const [selectedShopId, setSelectedShopId] = useState(shops[0]?.id || '');
   const [announcementInput, setAnnouncementInput] = useState(announcement || '');
   const [newShopName, setNewShopName] = useState('');
@@ -11,9 +11,17 @@ export default function MenuManager({ shops, onAddShop, onRemoveShop, onAddMenuI
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [importPreview, setImportPreview] = useState(null); // { items, mode }
   const [importError, setImportError] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const fileInputRef = useRef(null);
 
   const shop = shops.find((s) => s.id === selectedShopId);
+
+  // 切換店家時同步電話欄
+  useState(() => { setPhoneInput(shop?.phone || ''); });
+  function handleSelectShop(id) {
+    setSelectedShopId(id);
+    setPhoneInput(shops.find((s) => s.id === id)?.phone || '');
+  }
 
   function handleAddShop() {
     if (!newShopName.trim()) return;
@@ -163,7 +171,7 @@ export default function MenuManager({ shops, onAddShop, onRemoveShop, onAddMenuI
           {shops.map((s) => (
             <div key={s.id} className="flex items-center gap-1">
               <button
-                onClick={() => setSelectedShopId(s.id)}
+                onClick={() => handleSelectShop(s.id)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   selectedShopId === s.id
                     ? 'bg-orange-500 text-white'
@@ -207,6 +215,31 @@ export default function MenuManager({ shops, onAddShop, onRemoveShop, onAddMenuI
               取消
             </button>
           </div>
+        </div>
+      )}
+
+      {/* 店家電話 */}
+      {shop && (
+        <div className="bg-white rounded-xl shadow p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">📞 {shop.name} 電話</h3>
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              placeholder="輸入此分店電話（如 02-2345-6789）"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              className="flex-1 border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            />
+            <button
+              onClick={() => onUpdateShop(shop.id, { phone: phoneInput.trim() })}
+              className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+            >儲存</button>
+          </div>
+          {shop.phone && (
+            <a href={`tel:${shop.phone}`} className="mt-2 flex items-center gap-1 text-sm text-orange-500 hover:underline">
+              <span>📲</span><span>撥打 {shop.phone}</span>
+            </a>
+          )}
         </div>
       )}
 

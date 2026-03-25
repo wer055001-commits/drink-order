@@ -34,6 +34,7 @@ export default function App() {
     announcement,
     setAnnouncement,
     addShop,
+    updateShop,
     removeShop,
     addMenuItem,
     removeMenuItem,
@@ -151,6 +152,7 @@ export default function App() {
               <MenuManager
                 shops={shops}
                 onAddShop={addShop}
+                onUpdateShop={updateShop}
                 onRemoveShop={removeShop}
                 onAddMenuItem={addMenuItem}
                 onRemoveMenuItem={removeMenuItem}

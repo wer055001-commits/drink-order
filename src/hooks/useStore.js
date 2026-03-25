@@ -201,6 +201,10 @@ export function useStore() {
     return id;
   }
 
+  async function updateShop(shopId, data) {
+    await updateDoc(doc(db, 'shops', shopId), data);
+  }
+
   async function removeShop(shopId) {
     await deleteDoc(doc(db, 'shops', shopId));
   }
@@ -256,6 +260,7 @@ export function useStore() {
     announcement: announcementText,
     setAnnouncement,
     addShop,
+    updateShop,
     removeShop,
     addMenuItem,
     removeMenuItem,
