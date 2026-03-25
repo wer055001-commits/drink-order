@@ -137,25 +137,17 @@ function buildCopyText(orders, session) {
   const date = session?.date || '';
   let text = `【${shopName} ${date} 團購訂單】\n\n`;
 
-  // 彙整區（方便報單）
+  // 依飲料款式分組，人名寫前面
   const grouped = {};
   orders.forEach((o) => {
     const key = `${o.drink}(${o.size}) ${o.sugar} ${o.ice}${o.toppings.length ? ' +' + o.toppings.join('+') : ''}`;
-    grouped[key] = (grouped[key] || 0) + 1;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(o.name);
   });
-  text += '▌ 彙整（方便報單）\n';
-  Object.entries(grouped).forEach(([key, cnt]) => {
-    text += `${key} ×${cnt}\n`;
+  Object.entries(grouped).forEach(([key, names]) => {
+    text += `${names.join('、')} — ${key}\n`;
   });
 
-  // 明細
-  text += '\n▌ 明細\n';
-  orders.forEach((o) => {
-    text += `#${o.serialNo} ${o.name}：${o.drink}(${o.size}) ${o.sugar} ${o.ice}`;
-    if (o.toppings.length) text += ` +${o.toppings.join('+')}`;
-    if (o.note) text += ` (${o.note})`;
-    text += ` NT$${o.price}\n`;
-  });
   const t = orders.reduce((s, o) => s + o.price, 0);
   text += `\n共 ${orders.length} 杯，合計 NT$${t}`;
   return text;
@@ -164,8 +156,8 @@ function buildCopyText(orders, session) {
 
 // ── 單一 session 的訂單區塊 ───────────────────────────────────────
 function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, onClose, onReset, isLeader, myName }) {
-  const [copied, setCopied] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [filterMine, setFilterMine] = useState(!isLeader);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -179,23 +171,17 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
     return acc;
   }, {});
 
-  function handleCopy() {
-    navigator.clipboard.writeText(buildCopyText(orders, session)).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+  const orderText = buildCopyText(orders, session);
+
+  function handleCloseOnly() {
+    onClose(session.id);
+    setShowCloseModal(false);
   }
 
-  function handleShare() {
-    const text = buildCopyText(orders, session);
-    if (navigator.share) {
-      navigator.share({ title: `${session.shopName} 團購訂單`, text });
-    } else {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
+  function handleCloseAndLine() {
+    onClose(session.id);
+    setShowCloseModal(false);
+    window.open(`https://line.me/R/share?text=${encodeURIComponent(orderText)}`, '_blank');
   }
 
   return (
@@ -215,14 +201,10 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
         </div>
         {isLeader && (
           <div className="flex gap-2 flex-wrap justify-end">
-            <motion.button onClick={handleShare} disabled={orders.length === 0}
-              className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-orange-600 disabled:opacity-40"
+            <motion.button onClick={() => setShowCloseModal(true)}
+              className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-orange-600"
               whileTap={{ scale: 0.95 }}
-            >{copied ? '已複製！' : '分享'}</motion.button>
-<motion.button onClick={() => onClose(session.id)}
-              className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl font-medium hover:bg-gray-200"
-              whileTap={{ scale: 0.95 }}
-            >關閉</motion.button>
+            >結單</motion.button>
             <motion.button onClick={() => setShowConfirm(true)}
               className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl font-medium hover:bg-gray-200"
               whileTap={{ scale: 0.95 }}
@@ -231,6 +213,54 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
         )}
       </div>
 
+      {/* 結單確認 Modal */}
+      <AnimatePresence>
+        {showCloseModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+            style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowCloseModal(false); }}
+          >
+            <motion.div
+              className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-6 space-y-4"
+              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-gray-800 text-lg">結單確認</h3>
+                <button onClick={() => setShowCloseModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+              </div>
+
+              {/* 訂單預覽 */}
+              <div className="bg-gray-50 rounded-2xl px-4 py-3 max-h-52 overflow-y-auto">
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans">{orderText}</pre>
+              </div>
+
+              <p className="text-sm text-gray-500 text-center">結單後成員將無法繼續點餐</p>
+
+              <div className="space-y-2">
+                <motion.button
+                  onClick={handleCloseAndLine}
+                  disabled={orders.length === 0}
+                  className="w-full bg-green-500 text-white py-3 rounded-2xl font-semibold text-base hover:bg-green-600 disabled:opacity-40 flex items-center justify-center gap-2"
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <span>💬</span> 結單並傳送到 LINE
+                </motion.button>
+                <motion.button
+                  onClick={handleCloseOnly}
+                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-2xl font-semibold text-base hover:bg-gray-200"
+                  whileTap={{ scale: 0.97 }}
+                >
+                  僅結單
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showConfirm && (
@@ -352,33 +382,6 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
         )}
       </AnimatePresence>
 
-      {/* 複製預覽（折疊） */}
-      {orders.length > 0 && isLeader && (
-        <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
-          <button
-            onClick={() => setShowPreview((v) => !v)}
-            className="w-full flex justify-between items-center px-4 py-3 text-sm font-semibold text-gray-500 hover:bg-gray-100 transition-colors"
-          >
-            <span>複製預覽</span>
-            <motion.span animate={{ rotate: showPreview ? 180 : 0 }} transition={{ duration: 0.2 }}>▼</motion.span>
-          </button>
-          <AnimatePresence>
-            {showPreview && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="px-4 pb-4 border-t">
-                  <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono pt-3">{buildCopyText(orders, session)}</pre>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
     </div>
   );
 }
