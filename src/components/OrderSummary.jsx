@@ -161,69 +161,6 @@ function buildCopyText(orders, session) {
   return text;
 }
 
-// ── 朗讀模式 Modal ──────────────────────────────────────────────
-function ReadingModeModal({ orders, onClose }) {
-  const [index, setIndex] = useState(0);
-  const order = orders[index];
-  if (!order) return null;
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-50 bg-gray-900 flex flex-col"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    >
-      {/* 頂部 */}
-      <div className="flex items-center justify-between px-5 py-4">
-        <span className="text-white/60 text-sm font-medium">{index + 1} / {orders.length}</span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-2xl leading-none">✕</button>
-      </div>
-
-      {/* 訂單卡片 */}
-      <div className="flex-1 flex items-center justify-center px-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={order.id}
-            className="bg-white rounded-3xl w-full max-w-sm p-8 text-center space-y-3 shadow-2xl"
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ duration: 0.18 }}
-          >
-            <div className="text-4xl font-black text-orange-500">#{order.serialNo}</div>
-            <div className="text-3xl font-bold text-gray-800">{order.name}</div>
-            <div className="text-2xl text-gray-700 font-medium">{order.drink}</div>
-            <div className="text-lg text-gray-500">{order.size}</div>
-            <div className="flex justify-center gap-3">
-              <span className="bg-orange-100 text-orange-700 text-base px-3 py-1 rounded-full font-medium">{order.sugar}</span>
-              <span className="bg-blue-100 text-blue-700 text-base px-3 py-1 rounded-full font-medium">{order.ice}</span>
-            </div>
-            {order.toppings?.length > 0 && (
-              <div className="text-base text-green-600 font-medium">+{order.toppings.join('・')}</div>
-            )}
-            {order.note && (
-              <div className="text-sm text-gray-400 bg-gray-50 rounded-xl px-3 py-2">備註：{order.note}</div>
-            )}
-            <div className="text-2xl font-bold text-orange-500 pt-1">NT${order.price}</div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* 下方導航 */}
-      <div className="flex gap-3 px-6 pb-10">
-        <button
-          onClick={() => setIndex((i) => Math.max(0, i - 1))}
-          disabled={index === 0}
-          className="flex-1 bg-white/10 text-white py-4 rounded-2xl text-lg font-semibold disabled:opacity-30 active:bg-white/20"
-        >← 上一筆</button>
-        <button
-          onClick={() => setIndex((i) => Math.min(orders.length - 1, i + 1))}
-          disabled={index === orders.length - 1}
-          className="flex-1 bg-orange-500 text-white py-4 rounded-2xl text-lg font-semibold disabled:opacity-30 active:bg-orange-600"
-        >下一筆 →</button>
-      </div>
-    </motion.div>
-  );
-}
 
 // ── 單一 session 的訂單區塊 ───────────────────────────────────────
 function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, onClose, onReset, isLeader, myName }) {
@@ -232,7 +169,6 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
   const [showPreview, setShowPreview] = useState(false);
   const [filterMine, setFilterMine] = useState(!isLeader);
   const [editingOrder, setEditingOrder] = useState(null);
-  const [readingMode, setReadingMode] = useState(false);
   const isSessionOpen = new Date(session.expiresAt) > new Date();
 
   const displayOrders = filterMine && myName ? orders.filter((o) => o.name === myName) : orders;
@@ -283,11 +219,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
               className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-orange-600 disabled:opacity-40"
               whileTap={{ scale: 0.95 }}
             >{copied ? '已複製！' : '分享'}</motion.button>
-            <motion.button onClick={() => setReadingMode(true)} disabled={orders.length === 0}
-              className="text-sm bg-blue-500 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-blue-600 disabled:opacity-40"
-              whileTap={{ scale: 0.95 }}
-            >朗讀</motion.button>
-            <motion.button onClick={() => onClose(session.id)}
+<motion.button onClick={() => onClose(session.id)}
               className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-xl font-medium hover:bg-gray-200"
               whileTap={{ scale: 0.95 }}
             >關閉</motion.button>
@@ -299,12 +231,6 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
         )}
       </div>
 
-      {/* 朗讀模式 */}
-      <AnimatePresence>
-        {readingMode && orders.length > 0 && (
-          <ReadingModeModal orders={orders} onClose={() => setReadingMode(false)} />
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showConfirm && (
