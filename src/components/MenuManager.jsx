@@ -16,8 +16,36 @@ function parseNidinMenu(data) {
     .map((p) => ({ name: p.name, price: p.price, sizes: [{ label: 'M', add: 0 }] }));
 }
 
+// 模糊比對：計算字串相似度分數
+function fuzzyScore(text, query) {
+  const t = text.toLowerCase();
+  const q = query.toLowerCase();
+  if (t.includes(q)) return 1;
+  let qi = 0, bonus = 0, prev = -1;
+  for (let ti = 0; ti < t.length && qi < q.length; ti++) {
+    if (t[ti] === q[qi]) { bonus += (ti === prev + 1 ? 2 : 1); prev = ti; qi++; }
+  }
+  return qi === q.length ? bonus / (q.length * 2 + t.length) : 0;
+}
+
+function getLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('此裝置不支援定位'));
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => reject(new Error('定位失敗，請確認已允許位置權限')),
+      { timeout: 8000 }
+    );
+  });
+}
+
+function formatDistance(m) {
+  return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
+}
+
 function NidinImportModal({ onImport, onClose }) {
-  const [step, setStep] = useState('search');
+  const [tab, setTab] = useState('brand');       // 'brand' | 'nearby'
+  const [step, setStep] = useState('search');    // search | brands | stores | preview
   const [query, setQuery] = useState('');
   const [brands, setBrands] = useState([]);
   const [stores, setStores] = useState([]);
@@ -26,29 +54,74 @@ function NidinImportModal({ onImport, onClose }) {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [location, setLocation] = useState(null);  // { lat, lng }
+  const [locLoading, setLocLoading] = useState(false);
 
-  async function searchBrands() {
+  async function requestLocation() {
+    setLocLoading(true); setError('');
+    try {
+      const loc = await getLocation();
+      setLocation(loc);
+    } catch (e) { setError(e.message); }
+    finally { setLocLoading(false); }
+  }
+
+  // 品牌名稱搜尋（模糊）
+  async function searchByBrandName() {
     if (!query.trim()) return;
     setLoading(true); setError('');
     try {
-      const res = await fetch(`/api/nidin?path=brands`);
+      const res = await fetch('/api/nidin?path=brands');
       const data = await res.json();
       const q = query.trim();
-      const filtered = (data.brands || []).filter((b) =>
-        b.name.includes(q) || (b.name_short || '').includes(q)
-      );
-      setBrands(filtered);
+      const scored = (data.brands || [])
+        .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, q), fuzzyScore(b.name_short || '', q)) }))
+        .filter((b) => b._score > 0)
+        .sort((a, b) => b._score - a._score);
+      setBrands(scored);
       setStep('brands');
     } catch { setError('搜尋失敗，請再試一次'); }
     finally { setLoading(false); }
   }
 
+  // 附近搜尋（位置 + 關鍵字）
+  async function searchNearby() {
+    if (!location) return;
+    setLoading(true); setError('');
+    try {
+      const res = await fetch('/api/nidin?path=search/brand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: location.lat, longitude: location.lng, keyword: query.trim(), shopper_id: null, src_type: 0, page: 1, count: 30 }),
+      });
+      const data = await res.json();
+      setBrands(data.brands || []);
+      setStep('brands');
+    } catch { setError('搜尋失敗，請再試一次'); }
+    finally { setLoading(false); }
+  }
+
+  function handleSearch() {
+    if (tab === 'brand') searchByBrandName();
+    else searchNearby();
+  }
+
   async function selectBrand(brand) {
     setSelectedBrand(brand); setLoading(true); setError('');
     try {
-      const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
-      const data = await res.json();
-      setStores(data.stores || []);
+      if (tab === 'nearby' && location) {
+        // 附近模式：用 listByPositionNew 依距離排序
+        const res = await fetch(
+          `/api/nidin?path=store/listByPositionNew&latitude=${location.lat}&longitude=${location.lng}&page=1&count=30&src_type=3`,
+          { headers: { 'x-nidin-brand': brand.brand_code } }
+        );
+        const data = await res.json();
+        setStores(data.stores || []);
+      } else {
+        const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
+        const data = await res.json();
+        setStores(data.stores || []);
+      }
       setStep('stores');
     } catch { setError('無法取得分店列表'); }
     finally { setLoading(false); }
@@ -59,14 +132,18 @@ function NidinImportModal({ onImport, onClose }) {
     try {
       const res = await fetch(`/api/nidin?path=store/${store.id}/onShelfMenu`);
       const data = await res.json();
-      const items = parseNidinMenu(data);
-      setMenuItems(items);
+      setMenuItems(parseNidinMenu(data));
       setStep('preview');
     } catch { setError('無法取得菜單'); }
     finally { setLoading(false); }
   }
 
-  const stepBack = { brands: 'search', stores: 'brands', preview: 'stores' };
+  function goBack() {
+    const map = { brands: 'search', stores: 'brands', preview: 'stores' };
+    setStep(map[step] || 'search');
+  }
+
+  const stepTitle = { search: '從你訂匯入', brands: `「${query || '附近'}」結果`, stores: selectedBrand?.name, preview: '確認匯入' };
 
   return (
     <motion.div
@@ -83,44 +160,87 @@ function NidinImportModal({ onImport, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
-          <div className="flex items-center gap-2">
-            {step !== 'search' && (
-              <button onClick={() => setStep(stepBack[step])} className="text-gray-400 hover:text-gray-600 text-xl pr-1">←</button>
-            )}
-            <h3 className="font-bold text-gray-800 text-lg">
-              {step === 'search' && '從你訂匯入'}
-              {step === 'brands' && `「${query}」搜尋結果`}
-              {step === 'stores' && selectedBrand?.name}
-              {step === 'preview' && '確認匯入'}
-            </h3>
+        <div className="px-6 pt-6 pb-3 shrink-0">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              {step !== 'search' && (
+                <button onClick={goBack} className="text-gray-400 hover:text-gray-600 text-xl pr-1">←</button>
+              )}
+              <h3 className="font-bold text-gray-800 text-lg">{stepTitle[step]}</h3>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+          {/* Tab 切換（只在 search 步驟顯示） */}
+          {step === 'search' && (
+            <div className="flex bg-gray-100 rounded-xl p-1">
+              <button onClick={() => setTab('brand')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'brand' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+              >🔍 品牌名稱</button>
+              <button onClick={() => { setTab('nearby'); if (!location) requestLocation(); }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'nearby' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+              >📍 附近搜尋</button>
+            </div>
+          )}
         </div>
 
         {/* Content */}
         <div className="overflow-y-auto flex-1 px-6 pb-4">
-          {step === 'search' && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-500">輸入店家名稱（例：50嵐、迷客夏、麥當勞）</p>
+          {step === 'search' && tab === 'brand' && (
+            <div className="space-y-3 pt-1">
+              <p className="text-sm text-gray-500">支援模糊搜尋，打「50嵐」「五十嵐」「50l」都能找到</p>
               <div className="flex gap-2">
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchBrands()}
-                  placeholder="搜尋店家..."
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="輸入店家名稱..."
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
                   autoFocus
                 />
-                <button onClick={searchBrands} disabled={loading || !query.trim()}
+                <button onClick={handleSearch} disabled={loading || !query.trim()}
                   className="bg-orange-500 text-white px-5 py-3 rounded-xl font-medium text-sm disabled:opacity-40"
                 >{loading ? '...' : '搜尋'}</button>
               </div>
             </div>
           )}
 
+          {step === 'search' && tab === 'nearby' && (
+            <div className="space-y-3 pt-1">
+              {!location ? (
+                <div className="text-center py-6">
+                  {locLoading ? (
+                    <p className="text-gray-400 text-sm">定位中...</p>
+                  ) : (
+                    <>
+                      <p className="text-4xl mb-3">📍</p>
+                      <p className="text-gray-600 text-sm mb-4">需要你的位置才能搜尋附近店家</p>
+                      <button onClick={requestLocation}
+                        className="bg-orange-500 text-white px-6 py-2.5 rounded-xl font-medium text-sm"
+                      >允許定位</button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-green-600 flex items-center gap-1">✓ 已取得位置</p>
+                  <div className="flex gap-2">
+                    <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      placeholder="輸入類別或店名（例：牛肉麵、飲料）"
+                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                      autoFocus
+                    />
+                    <button onClick={handleSearch} disabled={loading}
+                      className="bg-orange-500 text-white px-5 py-3 rounded-xl font-medium text-sm disabled:opacity-40"
+                    >{loading ? '...' : '搜尋'}</button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {step === 'brands' && (
             <div className="space-y-1">
               {brands.length === 0 ? (
-                <p className="text-center text-gray-400 py-6 text-sm">找不到「{query}」，請換個關鍵字</p>
+                <p className="text-center text-gray-400 py-6 text-sm">找不到相關店家，請換個關鍵字</p>
               ) : brands.map((b) => (
                 <button key={b.id} onClick={() => selectBrand(b)}
                   className="w-full text-left flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
@@ -148,7 +268,12 @@ function NidinImportModal({ onImport, onClose }) {
                 <button key={s.id} onClick={() => selectStore(s)}
                   className="w-full text-left px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
                 >
-                  <div className="font-medium text-gray-800">{s.name}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-gray-800">{s.name}</div>
+                    {s.distance != null && (
+                      <span className="text-xs text-orange-500 font-medium shrink-0 ml-2">{formatDistance(s.distance)}</span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-400">{s.address}</div>
                 </button>
               ))}
