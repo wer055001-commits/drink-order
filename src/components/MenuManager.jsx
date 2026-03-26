@@ -1,6 +1,201 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
+import { AnimatePresence, motion } from 'framer-motion';
 
+// ── 你訂匯入 Modal ──────────────────────────────────────────────────
+function parseNidinMenu(data) {
+  const productJson = data.menu?.product_list_json;
+  if (!productJson) return [];
+  const s = productJson.schema;
+  const nameIdx = s.name ?? 2;
+  const priceIdx = s.price ?? 4;
+  const enableIdx = typeof s.is_enable !== 'undefined' ? s.is_enable : 15;
+  return Object.entries(productJson.data)
+    .map(([, vals]) => ({ name: vals[nameIdx], price: parseInt(vals[priceIdx]) || 0, enabled: vals[enableIdx] }))
+    .filter((p) => p.enabled && p.name && p.price > 0)
+    .map((p) => ({ name: p.name, price: p.price, sizes: [{ label: 'M', add: 0 }] }));
+}
+
+function NidinImportModal({ onImport, onClose }) {
+  const [step, setStep] = useState('search');
+  const [query, setQuery] = useState('');
+  const [brands, setBrands] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function searchBrands() {
+    if (!query.trim()) return;
+    setLoading(true); setError('');
+    try {
+      const res = await fetch(`/api/nidin?path=brands`);
+      const data = await res.json();
+      const q = query.trim();
+      const filtered = (data.brands || []).filter((b) =>
+        b.name.includes(q) || (b.name_short || '').includes(q)
+      );
+      setBrands(filtered);
+      setStep('brands');
+    } catch { setError('搜尋失敗，請再試一次'); }
+    finally { setLoading(false); }
+  }
+
+  async function selectBrand(brand) {
+    setSelectedBrand(brand); setLoading(true); setError('');
+    try {
+      const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
+      const data = await res.json();
+      setStores(data.stores || []);
+      setStep('stores');
+    } catch { setError('無法取得分店列表'); }
+    finally { setLoading(false); }
+  }
+
+  async function selectStore(store) {
+    setSelectedStore(store); setLoading(true); setError('');
+    try {
+      const res = await fetch(`/api/nidin?path=store/${store.id}/onShelfMenu`);
+      const data = await res.json();
+      const items = parseNidinMenu(data);
+      setMenuItems(items);
+      setStep('preview');
+    } catch { setError('無法取得菜單'); }
+    finally { setLoading(false); }
+  }
+
+  const stepBack = { brands: 'search', stores: 'brands', preview: 'stores' };
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <motion.div
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg flex flex-col"
+        style={{ maxHeight: '82vh' }}
+        initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
+          <div className="flex items-center gap-2">
+            {step !== 'search' && (
+              <button onClick={() => setStep(stepBack[step])} className="text-gray-400 hover:text-gray-600 text-xl pr-1">←</button>
+            )}
+            <h3 className="font-bold text-gray-800 text-lg">
+              {step === 'search' && '從你訂匯入'}
+              {step === 'brands' && `「${query}」搜尋結果`}
+              {step === 'stores' && selectedBrand?.name}
+              {step === 'preview' && '確認匯入'}
+            </h3>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+        </div>
+
+        {/* Content */}
+        <div className="overflow-y-auto flex-1 px-6 pb-4">
+          {step === 'search' && (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-500">輸入店家名稱（例：50嵐、迷客夏、麥當勞）</p>
+              <div className="flex gap-2">
+                <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchBrands()}
+                  placeholder="搜尋店家..."
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  autoFocus
+                />
+                <button onClick={searchBrands} disabled={loading || !query.trim()}
+                  className="bg-orange-500 text-white px-5 py-3 rounded-xl font-medium text-sm disabled:opacity-40"
+                >{loading ? '...' : '搜尋'}</button>
+              </div>
+            </div>
+          )}
+
+          {step === 'brands' && (
+            <div className="space-y-1">
+              {brands.length === 0 ? (
+                <p className="text-center text-gray-400 py-6 text-sm">找不到「{query}」，請換個關鍵字</p>
+              ) : brands.map((b) => (
+                <button key={b.id} onClick={() => selectBrand(b)}
+                  className="w-full text-left flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
+                >
+                  {b.image
+                    ? <img src={b.image} className="w-10 h-10 rounded-lg object-cover shrink-0" alt="" />
+                    : <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🍱</div>
+                  }
+                  <div>
+                    <div className="font-medium text-gray-800">{b.name}</div>
+                    <div className="text-xs text-gray-400">{b.meal_tag_info?.map((t) => t.name).join('・')}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {step === 'stores' && (
+            <div className="space-y-1">
+              {loading ? (
+                <p className="text-center text-gray-400 py-6">載入中...</p>
+              ) : stores.length === 0 ? (
+                <p className="text-center text-gray-400 py-6 text-sm">此品牌目前無可選分店</p>
+              ) : stores.map((s) => (
+                <button key={s.id} onClick={() => selectStore(s)}
+                  className="w-full text-left px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
+                >
+                  <div className="font-medium text-gray-800">{s.name}</div>
+                  <div className="text-xs text-gray-400">{s.address}</div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {step === 'preview' && (
+            <div className="space-y-3">
+              {loading ? <p className="text-center text-gray-400 py-6">載入菜單中...</p> : (
+                <>
+                  <div className="bg-orange-50 rounded-xl px-4 py-3">
+                    <p className="font-semibold text-orange-800">{selectedBrand?.name} {selectedStore?.name}</p>
+                    <p className="text-sm text-orange-600 mt-0.5">共 {menuItems.length} 個品項</p>
+                    {selectedStore?.tel && <p className="text-xs text-orange-500 mt-0.5">📞 {selectedStore.tel}</p>}
+                  </div>
+                  <div className="space-y-1 max-h-52 overflow-y-auto">
+                    {menuItems.map((item, i) => (
+                      <div key={i} className="flex justify-between text-sm text-gray-600 py-1.5 border-b last:border-0">
+                        <span>{item.name}</span>
+                        <span className="text-gray-400">NT${item.price}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {error && <p className="text-red-500 text-sm text-center mt-3">{error}</p>}
+        </div>
+
+        {/* Footer */}
+        {step === 'preview' && !loading && menuItems.length > 0 && (
+          <div className="px-6 pb-6 pt-2 shrink-0 border-t">
+            <motion.button
+              onClick={() => onImport({ shopName: `${selectedBrand.name} ${selectedStore.name}`, phone: selectedStore.tel || '', items: menuItems })}
+              className="w-full bg-orange-500 text-white py-3.5 rounded-2xl font-semibold text-base hover:bg-orange-600"
+              whileTap={{ scale: 0.97 }}
+            >新增店家並匯入菜單</motion.button>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ── 主元件 ──────────────────────────────────────────────────────────
 export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveShop, onAddMenuItem, onRemoveMenuItem, onResetShops, onImportMenuItems, announcement, onSetAnnouncement }) {
   const [selectedShopId, setSelectedShopId] = useState(shops[0]?.id || '');
   const [announcementInput, setAnnouncementInput] = useState(announcement || '');
@@ -9,10 +204,18 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
   const [newItem, setNewItem] = useState({ name: '', price: '', sizeL: '' });
   const [showAddItem, setShowAddItem] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [importPreview, setImportPreview] = useState(null); // { items, mode }
+  const [importPreview, setImportPreview] = useState(null);
   const [importError, setImportError] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
+  const [showNidinModal, setShowNidinModal] = useState(false);
   const fileInputRef = useRef(null);
+
+  async function handleNidinImport({ shopName, phone, items }) {
+    const newId = await onAddShop({ name: shopName, phone });
+    await onImportMenuItems(newId, items, 'replace');
+    setSelectedShopId(newId);
+    setShowNidinModal(false);
+  }
 
   const shop = shops.find((s) => s.id === selectedShopId);
 
@@ -134,18 +337,24 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
       {/* 店家切換 */}
       <div className="bg-white rounded-xl shadow p-4">
         <div className="flex items-center gap-2 mb-3">
-          <label className="font-semibold text-gray-700 flex-1">飲料店</label>
+          <label className="font-semibold text-gray-700 flex-1">店家</label>
+          <button
+            onClick={() => setShowNidinModal(true)}
+            className="text-sm text-green-600 font-medium hover:text-green-700 flex items-center gap-1"
+          >
+            🔗 從你訂匯入
+          </button>
           <button
             onClick={() => setShowAddShop(!showAddShop)}
             className="text-sm text-orange-500 font-medium hover:text-orange-600"
           >
-            + 新增店家
+            + 手動新增
           </button>
           <button
             onClick={() => setShowResetConfirm(true)}
             className="text-sm text-gray-400 hover:text-gray-600"
           >
-            重設預設
+            重設
           </button>
         </div>
 
@@ -421,6 +630,16 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
         <p>冰塊：正常冰、少冰、微冰、去冰、熱</p>
         <p>加料：珍珠、椰果、布丁、仙草、芋圓</p>
       </div>
+
+      {/* 你訂匯入 Modal */}
+      <AnimatePresence>
+        {showNidinModal && (
+          <NidinImportModal
+            onImport={handleNidinImport}
+            onClose={() => setShowNidinModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
