@@ -350,11 +350,19 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-orange-500 font-bold">NT${order.price}</span>
-                    {!isLeader && order.name === myName && isSessionOpen && onUpdateOrder && (
-                      <motion.button onClick={() => setEditingOrder(order)}
-                        className="text-xs text-blue-500 border border-blue-300 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-                        whileTap={{ scale: 0.95 }}
-                      >編輯</motion.button>
+                    {!isLeader && order.name === myName && isSessionOpen && (
+                      <div className="flex gap-1">
+                        {onUpdateOrder && (
+                          <motion.button onClick={() => setEditingOrder(order)}
+                            className="text-xs text-blue-500 border border-blue-300 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                            whileTap={{ scale: 0.95 }}
+                          >編輯</motion.button>
+                        )}
+                        <motion.button onClick={() => onRemoveOrder(order.id)}
+                          className="text-xs text-red-400 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                          whileTap={{ scale: 0.95 }}
+                        >刪除</motion.button>
+                      </div>
                     )}
                     {isLeader && (
                       <motion.button onClick={() => onRemoveOrder(order.id)}
@@ -367,6 +375,23 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
               </motion.div>
             ))}
           </AnimatePresence>
+        </div>
+      )}
+
+      {/* 每人小計（團主專用） */}
+      {isLeader && orders.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">💰 每人小計</h3>
+          <div className="space-y-2">
+            {Object.entries(
+              orders.reduce((acc, o) => { acc[o.name] = (acc[o.name] || 0) + o.price; return acc; }, {})
+            ).map(([name, amount]) => (
+              <div key={name} className="flex justify-between items-center text-sm">
+                <span className="text-gray-700 font-medium">{name}</span>
+                <span className="font-bold text-orange-500">NT${amount}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -386,8 +411,8 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
   );
 }
 
-// ── 歷史紀錄區塊 ─────────────────────────────────────────────────
-function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory }) {
+// ── 歷史紀錄區塊（團主，含收款追蹤）──────────────────────────────
+function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory, onMarkPaid }) {
   const [expanded, setExpanded] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
@@ -406,7 +431,10 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory }) {
         {pastSessions.map((s) => {
           const his = getSessionOrders(s.id);
           const total = his.reduce((sum, o) => sum + o.price, 0);
+          const paidOrders = s.paidOrders || [];
+          const paidTotal = his.filter((o) => paidOrders.includes(o.id)).reduce((sum, o) => sum + o.price, 0);
           const isOpen = expanded === s.id;
+          const allPaid = his.length > 0 && paidOrders.length >= his.length;
           return (
             <div key={s.id} className="border border-gray-100 rounded-xl overflow-hidden">
               <div
@@ -414,42 +442,107 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory }) {
                 onClick={() => setExpanded(isOpen ? null : s.id)}
               >
                 <div>
-                  <span className="font-medium text-gray-800">{s.shopName}</span>
-                  <span className="text-sm text-gray-500 ml-2">{s.date}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-800">{s.shopName}</span>
+                    {allPaid && <span className="text-xs bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-medium">全額收款</span>}
+                  </div>
+                  <span className="text-xs text-gray-400">{s.date}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-500">{his.length} 杯 NT${total}</span>
-                  <motion.span
-                    className="text-gray-400"
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >▼</motion.span>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">{his.length} 杯 NT${total}</div>
+                    {paidTotal > 0 && !allPaid && (
+                      <div className="text-xs text-green-600">已收 NT${paidTotal}</div>
+                    )}
+                  </div>
+                  <motion.span className="text-gray-400" animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>▼</motion.span>
                 </div>
               </div>
               <AnimatePresence>
                 {isOpen && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
                     <div className="border-t px-3 py-3 bg-gray-50 space-y-2">
-                      {his.map((o) => (
-                        <div key={o.id} className="flex justify-between text-sm text-gray-600">
-                          <span>#{o.serialNo} {o.name}・{o.drink}({o.size}) {o.sugar} {o.ice}{o.toppings.length ? ` +${o.toppings.join('+')}` : ''}</span>
-                          <span className="text-orange-500 font-medium ml-2">NT${o.price}</span>
-                        </div>
-                      ))}
+                      {/* 收款清單 */}
+                      <p className="text-xs text-gray-400 font-medium mb-1">點擊標記收款狀態</p>
+                      {his.map((o) => {
+                        const isPaid = paidOrders.includes(o.id);
+                        return (
+                          <div key={o.id}
+                            className={`flex items-center justify-between text-sm rounded-xl px-2 py-1.5 cursor-pointer transition-colors ${isPaid ? 'bg-green-50 text-green-700' : 'hover:bg-gray-100 text-gray-600'}`}
+                            onClick={() => onMarkPaid(s.id, o.id, !isPaid)}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isPaid ? 'bg-green-500 border-green-500' : 'border-gray-300'}`}>
+                                {isPaid && <span className="text-white text-xs leading-none">✓</span>}
+                              </span>
+                              <span>{o.name}・{o.drink}({o.size})</span>
+                            </span>
+                            <span className={`font-medium ${isPaid ? 'line-through text-green-400' : 'text-orange-500'}`}>NT${o.price}</span>
+                          </div>
+                        );
+                      })}
                       <div className="flex gap-2 pt-2">
                         <button onClick={() => handleCopy(s)} className="flex-1 bg-orange-500 text-white py-1.5 rounded-xl text-sm font-medium hover:bg-orange-600 transition-colors">
                           {copiedId === s.id ? '已複製！' : '複製'}
                         </button>
                         <button onClick={() => onRemoveHistory(s.id)} className="px-4 py-1.5 bg-gray-200 text-gray-600 rounded-xl text-sm hover:bg-red-100 hover:text-red-600 transition-colors">
-                          刪除紀錄
+                          刪除
                         </button>
                       </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── 使用者自己的歷史 ──────────────────────────────────────────────
+function UserHistorySection({ pastSessions, getSessionOrders, myName }) {
+  const [expanded, setExpanded] = useState(null);
+  const mySessions = pastSessions
+    .map((s) => ({ ...s, myOrders: getSessionOrders(s.id).filter((o) => o.name === myName) }))
+    .filter((s) => s.myOrders.length > 0);
+
+  if (mySessions.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <h3 className="font-semibold text-gray-700 mb-3">📄 我的歷史訂單</h3>
+      <div className="space-y-2">
+        {mySessions.map((s) => {
+          const myTotal = s.myOrders.reduce((sum, o) => sum + o.price, 0);
+          const isOpen = expanded === s.id;
+          return (
+            <div key={s.id} className="border border-gray-100 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-gray-50" onClick={() => setExpanded(isOpen ? null : s.id)}>
+                <div>
+                  <span className="font-medium text-gray-800">{s.shopName}</span>
+                  <span className="text-xs text-gray-400 ml-2">{s.date}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-orange-500 font-semibold">NT${myTotal}</span>
+                  <motion.span className="text-gray-400" animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>▼</motion.span>
+                </div>
+              </div>
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                    <div className="border-t px-3 py-3 bg-gray-50 space-y-1.5">
+                      {s.myOrders.map((o) => (
+                        <div key={o.id} className="flex justify-between text-sm text-gray-600">
+                          <span>{o.drink}（{o.size}）{o.sugar}・{o.ice}{o.toppings.length ? ` +${o.toppings.join('+')}` : ''}</span>
+                          <span className="text-orange-500 font-medium ml-2">NT${o.price}</span>
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -467,38 +560,32 @@ export default function OrderSummary({
   activeSessions, getActiveSessionOrders,
   pastSessions, getSessionOrders,
   onRemoveOrder, onUpdateOrder, onCloseSession, onResetSession, onRemoveHistory,
-  isLeader, getUserName, shops,
+  onMarkPaid, isLeader, getUserName, shops,
 }) {
   const myName = getUserName ? getUserName() : '';
 
   if (activeSessions.length === 0) {
     return (
-      <motion.div
-        className="max-w-2xl mx-auto px-4 py-4 space-y-4"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <motion.div className="max-w-2xl mx-auto px-4 py-4 space-y-4" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <div className="text-center text-gray-500 py-8">目前沒有進行中的團購單</div>
         {isLeader && pastSessions.length > 0 && (
-          <HistorySection pastSessions={pastSessions} getSessionOrders={getSessionOrders} onRemoveHistory={onRemoveHistory} />
+          <HistorySection pastSessions={pastSessions} getSessionOrders={getSessionOrders} onRemoveHistory={onRemoveHistory} onMarkPaid={onMarkPaid} />
+        )}
+        {!isLeader && myName && (
+          <UserHistorySection pastSessions={pastSessions} getSessionOrders={getSessionOrders} myName={myName} />
         )}
       </motion.div>
     );
   }
 
   return (
-    <motion.div
-      className="max-w-2xl mx-auto px-4 py-4 space-y-8"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
+    <motion.div className="max-w-2xl mx-auto px-4 py-4 space-y-8" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
       {!isLeader && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-sm text-blue-700 text-center">
-          你可以在截止前點擊「編輯」修改自己的訂單
+          截止前可點「編輯」或「刪除」修改自己的訂單
         </div>
       )}
 
-      {/* 全局統計卡（所有進行中訂單） */}
       {isLeader && activeSessions.length > 0 && (
         <StatsCard orders={activeSessions.flatMap((s) => getActiveSessionOrders(s.id))} />
       )}
@@ -519,7 +606,10 @@ export default function OrderSummary({
       ))}
 
       {isLeader && pastSessions.length > 0 && (
-        <HistorySection pastSessions={pastSessions} getSessionOrders={getSessionOrders} onRemoveHistory={onRemoveHistory} />
+        <HistorySection pastSessions={pastSessions} getSessionOrders={getSessionOrders} onRemoveHistory={onRemoveHistory} onMarkPaid={onMarkPaid} />
+      )}
+      {!isLeader && myName && pastSessions.length > 0 && (
+        <UserHistorySection pastSessions={pastSessions} getSessionOrders={getSessionOrders} myName={myName} />
       )}
     </motion.div>
   );

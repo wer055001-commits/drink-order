@@ -31,6 +31,7 @@ export default function App() {
     removeOrder,
     updateOrder,
     removeHistorySession,
+    markOrderPaid,
     announcement,
     setAnnouncement,
     addShop,
@@ -134,6 +135,7 @@ export default function App() {
                 onCloseSession={closeSession}
                 onResetSession={resetSession}
                 onRemoveHistory={removeHistorySession}
+                onMarkPaid={markOrderPaid}
                 isLeader={isLeader}
                 getUserName={getUserName}
                 shops={shops}

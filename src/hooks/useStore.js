@@ -187,6 +187,15 @@ export function useStore() {
     await setDoc(doc(db, 'config', 'announcement'), { text });
   }
 
+  async function markOrderPaid(sessionId, orderId, paid) {
+    const session = [...histSessions].find((s) => s.id === sessionId);
+    const paidOrders = session?.paidOrders || [];
+    const updated = paid
+      ? [...new Set([...paidOrders, orderId])]
+      : paidOrders.filter((id) => id !== orderId);
+    await updateDoc(doc(db, 'sessions', sessionId), { paidOrders: updated });
+  }
+
   async function removeHistorySession(sessionId) {
     const batch = writeBatch(db);
     batch.delete(doc(db, 'sessions', sessionId));
@@ -283,6 +292,7 @@ export function useStore() {
     removeOrder,
     updateOrder,
     removeHistorySession,
+    markOrderPaid,
     announcement: announcementText,
     setAnnouncement,
     addShop,

@@ -63,6 +63,16 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
             <>
               <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs border border-blue-300 text-blue-500 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors" whileTap={{ scale: 0.95 }}>+15 分鐘</motion.button>
               <motion.button onClick={() => onProxyOrder(session.id)} className="text-xs border border-purple-300 text-purple-500 px-3 py-1 rounded-lg hover:bg-purple-50 transition-colors" whileTap={{ scale: 0.95 }}>👥 代點</motion.button>
+              {secondsLeft <= 300 && (
+                <motion.button
+                  onClick={() => {
+                    const text = `⏰ 飲料快截止了！剩 ${display}，還沒點的快來！\n${window.location.href}`;
+                    window.open(`https://line.me/R/share?text=${encodeURIComponent(text)}`, '_blank');
+                  }}
+                  className="text-xs border border-orange-300 text-orange-500 px-3 py-1 rounded-lg hover:bg-orange-50 transition-colors animate-pulse"
+                  whileTap={{ scale: 0.95 }}
+                >📣 提醒成員</motion.button>
+              )}
             </>
           )}
           <motion.button onClick={() => setConfirmClose(true)} className="text-xs border border-gray-300 text-gray-500 px-3 py-1 rounded-lg hover:bg-gray-50 transition-colors" whileTap={{ scale: 0.95 }}>關閉</motion.button>
@@ -461,11 +471,22 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
   const [ice, setIce] = useState('正常冰');
   const [toppings, setToppings] = useState([]);
   const [note, setNote] = useState('');
+  const [drinkSearch, setDrinkSearch] = useState('');
+  const optionsRef = useState(null)[0];
+  const optionsDivRef = { current: null };
+
+  const filteredMenu = drinkSearch.trim()
+    ? shop.menu.filter((item) => item.name.includes(drinkSearch.trim()))
+    : shop.menu;
 
   function handleItemSelect(item) {
     setSelectedItem(item);
     setSize(item.sizes[0]?.label || '');
     setToppings([]);
+    // 選完飲料後自動滑到選項區
+    setTimeout(() => {
+      optionsDivRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 
   function toggleTopping(t) {
@@ -558,17 +579,34 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
             {shop.menu.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-4">此店家尚無品項，請先至「菜單管理」新增飲料。</p>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {shop.menu.map((item) => (
-                  <motion.button type="button" key={item.id} onClick={() => handleItemSelect(item)}
-                    className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <div className="font-medium text-gray-800">{item.name}</div>
-                    <div className="text-sm text-orange-500">NT${item.price}起</div>
-                  </motion.button>
-                ))}
-              </div>
+              <>
+                {shop.menu.length > 6 && (
+                  <input
+                    type="text"
+                    placeholder="搜尋飲料名稱..."
+                    value={drinkSearch}
+                    onChange={(e) => setDrinkSearch(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  />
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  {filteredMenu.map((item) => (
+                    <motion.button type="button" key={item.id} onClick={() => handleItemSelect(item)}
+                      className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <div className="font-medium text-gray-800 text-sm">{item.name}</div>
+                      <div className="text-xs text-orange-500">
+                        NT${item.price}
+                        {item.sizes.length > 1 && item.sizes.slice(1).map((s) => s.add > 0 ? ` / ${s.label} +${s.add}` : '').join('')}
+                      </div>
+                    </motion.button>
+                  ))}
+                  {filteredMenu.length === 0 && (
+                    <p className="col-span-2 text-center text-sm text-gray-400 py-4">找不到「{drinkSearch}」</p>
+                  )}
+                </div>
+              </>
             )}
           </motion.div>
 
@@ -579,6 +617,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
+                ref={(el) => { optionsDivRef.current = el; }}
               >
                 {selectedItem.sizes.length > 1 && (
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
@@ -703,10 +742,18 @@ export default function OrderForm({
         isProxy={isProxy}
         onAddOrder={(orderData) => {
           onAddOrder(orderData, selectedSessionId);
-          if (onSaveUserName) onSaveUserName(orderData.name);
+          if (onSaveUserName && !isProxy) onSaveUserName(orderData.name);
           setSubmittedFor(selectedSessionId);
-          setTimeout(() => setSubmittedFor(null), 2000);
-          setView('list');
+          setTimeout(() => {
+            setSubmittedFor(null);
+            if (isProxy) {
+              // 代點模式：直接回到代點表單（清空姓名繼續代點）
+              setView('order');
+            } else {
+              setView('list');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }, 1500);
         }}
         onBack={() => setView('list')}
       />
@@ -741,7 +788,7 @@ export default function OrderForm({
                 transition={{ delay: 0.15, duration: 0.6 }}
               >✅</motion.div>
               <p className="text-2xl font-bold text-gray-800">訂單送出！</p>
-              <p className="text-gray-500 mt-2 text-sm">下一位可以開始點了</p>
+              <p className="text-gray-500 mt-2 text-sm">{isProxy ? '準備代點下一位...' : '下一位可以開始點了'}</p>
             </motion.div>
           </motion.div>
         )}

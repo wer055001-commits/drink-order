@@ -50,7 +50,7 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
               <span className={`text-xs font-medium ${isActive ? 'text-orange-500' : 'text-gray-400'}`}>
                 {item.label}
               </span>
-              {item.key === 'summary' && ordersCount > 0 && (
+              {item.key === 'summary' && ordersCount > 0 && (role === 'leader' || role === 'admin') && (
                 <motion.span
                   className="absolute top-1 right-[calc(50%-20px)] bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center"
                   initial={{ scale: 0 }}

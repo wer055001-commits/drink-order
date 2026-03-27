@@ -1,5 +1,24 @@
 // ── 你訂 API 共用工具 ────────────────────────────────────────────
 
+// 大●/中●/小● 尺寸對應表
+const SIZE_PREFIXES = [
+  { prefix: '大●', label: 'L' },
+  { prefix: '中●', label: 'M' },
+  { prefix: '小●', label: 'S' },
+  { prefix: '大杯', label: 'L' },
+  { prefix: '中杯', label: 'M' },
+  { prefix: '小杯', label: 'S' },
+];
+
+function extractSize(name) {
+  for (const { prefix, label } of SIZE_PREFIXES) {
+    if (name.startsWith(prefix)) {
+      return { baseName: name.slice(prefix.length).trim(), sizeLabel: label };
+    }
+  }
+  return { baseName: name.trim(), sizeLabel: null };
+}
+
 export function parseNidinMenu(data) {
   const productJson = data.menu?.product_list_json;
   if (!productJson) return [];
@@ -7,10 +26,46 @@ export function parseNidinMenu(data) {
   const nameIdx = s.name ?? 2;
   const priceIdx = s.price ?? 4;
   const enableIdx = typeof s.is_enable !== 'undefined' ? s.is_enable : 15;
-  return Object.entries(productJson.data)
-    .map(([, vals]) => ({ name: vals[nameIdx], price: parseInt(vals[priceIdx]) || 0, enabled: vals[enableIdx] }))
-    .filter((p) => p.enabled && p.name && p.price > 0)
-    .map((p) => ({ name: p.name, price: p.price, sizes: [{ label: 'M', add: 0 }] }));
+
+  const rawItems = Object.entries(productJson.data)
+    .map(([, vals]) => ({
+      name: vals[nameIdx],
+      price: parseInt(vals[priceIdx]) || 0,
+      enabled: vals[enableIdx],
+    }))
+    .filter((p) => p.enabled && p.name && p.price > 0);
+
+  // 解析尺寸前綴，依品項名稱分組
+  const groups = {};
+  rawItems.forEach((p) => {
+    const { baseName, sizeLabel } = extractSize(p.name);
+    if (!groups[baseName]) {
+      groups[baseName] = { name: baseName, variants: [] };
+    }
+    groups[baseName].variants.push({ sizeLabel, price: p.price });
+  });
+
+  const SIZE_ORDER = { S: 0, M: 1, L: 2 };
+
+  return Object.values(groups).map((g) => {
+    const hasSizes = g.variants.some((v) => v.sizeLabel !== null);
+    if (!hasSizes) {
+      // 無尺寸前綴，單一尺寸
+      return { name: g.name, price: g.variants[0].price, sizes: [{ label: 'M', add: 0 }] };
+    }
+
+    // 排序：S < M < L
+    const sorted = g.variants
+      .filter((v) => v.sizeLabel)
+      .sort((a, b) => (SIZE_ORDER[a.sizeLabel] ?? 9) - (SIZE_ORDER[b.sizeLabel] ?? 9));
+
+    const basePrice = sorted[0].price;
+    return {
+      name: g.name,
+      price: basePrice,
+      sizes: sorted.map((v) => ({ label: v.sizeLabel, add: v.price - basePrice })),
+    };
+  });
 }
 
 export function fuzzyScore(text, query) {

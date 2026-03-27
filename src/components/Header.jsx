@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ROLE_LABELS = { admin: '管理者', leader: '團主', user: '使用者' };
@@ -11,6 +11,18 @@ const SWITCH_OPTIONS = [
 
 export default function Header({ activeSessions, ordersCount, role, onLogout, onSwitchRole }) {
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   return (
     <header className="bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg">
@@ -32,7 +44,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <motion.button
               onClick={() => setShowMenu((v) => !v)}
               className={`text-xs font-semibold px-3 py-1.5 rounded-full ${ROLE_COLORS[role] || 'bg-white text-orange-700'}`}
