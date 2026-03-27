@@ -71,19 +71,23 @@ function NidinImportModal({ onImport, onClose }) {
   async function selectBrand(brand) {
     setSelectedBrand(brand); setLoading(true); setError('');
     try {
-      if (tab === 'nearby' && location) {
-        // 附近模式：用 listByPositionNew 依距離排序
+      let loc = location;
+      if (!loc) {
+        try { loc = await getLocation(); setLocation(loc); } catch { /* 無定位，回退全台列表 */ }
+      }
+
+      let data;
+      if (loc) {
         const res = await fetch(
-          `/api/nidin?path=store/listByPositionNew&latitude=${location.lat}&longitude=${location.lng}&page=1&count=30&src_type=3`,
+          `/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=30&src_type=3`,
           { headers: { 'x-nidin-brand': brand.brand_code } }
         );
-        const data = await res.json();
-        setStores(data.stores || []);
+        data = await res.json();
       } else {
         const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
-        const data = await res.json();
-        setStores(data.stores || []);
+        data = await res.json();
       }
+      setStores(data.stores || []);
       setStep('stores');
     } catch { setError('無法取得分店列表'); }
     finally { setLoading(false); }

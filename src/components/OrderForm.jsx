@@ -188,14 +188,21 @@ function NidinPicker({ onSelectStore, onCancel }) {
   async function selectBrand(brand) {
     setSelectedBrand(brand); setLoading(true); setError('');
     try {
+      // 優先嘗試取得定位，用附近門市 API（不論是品牌或附近搜尋模式）
+      let loc = location;
+      if (!loc) {
+        try { loc = await getLocation(); setLocation(loc); } catch { /* 無定位，回退全台列表 */ }
+      }
+
       let data;
-      if (tab === 'nearby' && location) {
+      if (loc) {
         const res = await fetch(
-          `/api/nidin?path=store/listByPositionNew&latitude=${location.lat}&longitude=${location.lng}&page=1&count=30&src_type=3`,
+          `/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=30&src_type=3`,
           { headers: { 'x-nidin-brand': brand.brand_code } }
         );
         data = await res.json();
       } else {
+        // 定位失敗，回退到全台所有分店
         const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
         data = await res.json();
       }
