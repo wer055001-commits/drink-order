@@ -136,51 +136,44 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
 function NidinPicker({ onSelectStore, onCancel }) {
   const [step, setStep] = useState('search');
   const [query, setQuery] = useState('');
-  const [brands, setBrands] = useState([]);
+  const [allBrands, setAllBrands] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [storeLoading, setStoreLoading] = useState(false);
   const [error, setError] = useState('');
   const locationRef = useRef(null);
 
-  // 元件掛載時靜默取得定位（不阻塞）
+  // 掛載時同時抓品牌清單 + 取得定位（不阻塞）
   useEffect(() => {
     getLocation().then((loc) => { locationRef.current = loc; }).catch(() => {});
+    fetch('/api/nidin?path=brands')
+      .then((r) => r.json())
+      .then((data) => {
+        const seen = new Set();
+        const deduped = (data.brands || []).filter((b) => {
+          const key = b.brand_code || b.id;
+          if (seen.has(key)) return false;
+          seen.add(key); return true;
+        });
+        setAllBrands(deduped);
+      })
+      .catch(() => {});
   }, []);
 
-  async function searchByBrand() {
-    if (!query.trim()) return;
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('/api/nidin?path=brands');
-      const data = await res.json();
-      const q = query.trim();
-      const scored = (data.brands || [])
-        .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, q), fuzzyScore(b.name_short || '', q)) }))
-        .filter((b) => b._score > 0)
-        .sort((a, b) => b._score - a._score);
-      // 依 brand_code 去重，保留分數最高的
-      const seen = new Set();
-      const deduped = scored.filter((b) => {
-        const key = b.brand_code || b.id;
-        if (seen.has(key)) return false;
-        seen.add(key); return true;
-      });
-      setBrands(deduped);
-      setStep('brands');
-    } catch { setError('搜尋失敗，請再試一次'); }
-    finally { setLoading(false); }
-  }
+  // 即時過濾品牌
+  const suggestions = query.trim().length === 0 ? [] : allBrands
+    .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, query.trim()), fuzzyScore(b.name_short || '', query.trim())) }))
+    .filter((b) => b._score > 0)
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 8);
 
   async function selectBrand(brand) {
-    setSelectedBrand(brand); setLoading(true); setError('');
+    setSelectedBrand(brand); setStoreLoading(true); setError(''); setStep('stores');
     try {
-      // 若定位尚未完成，再等一次
       let loc = locationRef.current;
       if (!loc) {
         try { loc = await getLocation(); locationRef.current = loc; } catch { /* 無定位，回退全台列表 */ }
       }
-
       let data;
       if (loc) {
         const res = await fetch(
@@ -193,13 +186,12 @@ function NidinPicker({ onSelectStore, onCancel }) {
         data = await res.json();
       }
       setStores(data.stores || []);
-      setStep('stores');
     } catch { setError('無法取得分店列表'); }
-    finally { setLoading(false); }
+    finally { setStoreLoading(false); }
   }
 
   async function selectStore(store) {
-    setLoading(true); setError('');
+    setStoreLoading(true); setError('');
     try {
       const res = await fetch(`/api/nidin?path=store/${store.id}/onShelfMenu`);
       const menuData = await res.json();
@@ -210,63 +202,55 @@ function NidinPicker({ onSelectStore, onCancel }) {
         menuData,
       });
     } catch { setError('無法取得菜單，請換一家店'); }
-    finally { setLoading(false); }
-  }
-
-  function goBack() {
-    setStep({ brands: 'search', stores: 'brands' }[step] || 'search');
+    finally { setStoreLoading(false); }
   }
 
   return (
     <div className="space-y-3">
       {/* 返回列 */}
-      {step !== 'search' && (
-        <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-400 hover:text-orange-500">
-          ← 返回
-        </button>
+      {step === 'stores' && (
+        <button onClick={() => { setStep('search'); setStores([]); }}
+          className="flex items-center gap-1 text-sm text-gray-400 hover:text-orange-500"
+        >← 返回</button>
       )}
 
-      {/* 搜尋輸入（單一模式） */}
+      {/* 搜尋輸入 + 即時建議 */}
       {step === 'search' && (
-        <div className="flex gap-2">
+        <div className="space-y-1.5">
           <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && searchByBrand()}
             placeholder="輸入店家名稱（例：50嵐、迷客夏）"
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
             autoFocus
           />
-          <button onClick={searchByBrand} disabled={loading || !query.trim()}
-            className="bg-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-40"
-          >{loading ? '⏳' : '搜尋'}</button>
-        </div>
-      )}
-
-      {/* 品牌列表 */}
-      {step === 'brands' && (
-        <div className="space-y-1.5 max-h-64 overflow-y-auto">
-          {loading && <p className="text-sm text-gray-400 text-center py-4">載入中...</p>}
-          {!loading && brands.length === 0 && <p className="text-sm text-gray-400 text-center py-4">找不到結果，請換個關鍵字</p>}
-          {brands.map((b) => (
-            <button key={b.brand_code || b.id} onClick={() => selectBrand(b)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100"
-            >
-              {b.image
-                ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
-                : <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🏪</div>
-              }
-              <div className="font-medium text-gray-800 text-sm">{b.name}</div>
-            </button>
-          ))}
+          {query.trim() && (
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {allBrands.length === 0 && <p className="text-xs text-gray-400 text-center py-3">品牌清單載入中...</p>}
+              {allBrands.length > 0 && suggestions.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-3">找不到「{query}」，請換個關鍵字</p>
+              )}
+              {suggestions.map((b) => (
+                <button key={b.brand_code || b.id} onClick={() => selectBrand(b)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100"
+                >
+                  {b.image
+                    ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
+                    : <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🏪</div>
+                  }
+                  <div className="font-medium text-gray-800 text-sm">{b.name}</div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* 分店列表 */}
       {step === 'stores' && (
         <div className="space-y-1.5 max-h-64 overflow-y-auto">
-          {loading && <p className="text-sm text-gray-400 text-center py-4">定位中，搜尋附近分店...</p>}
-          {!loading && stores.length === 0 && <p className="text-sm text-gray-400 text-center py-4">此品牌無可用分店</p>}
+          {storeLoading && <p className="text-sm text-gray-400 text-center py-4">搜尋附近分店中...</p>}
+          {!storeLoading && stores.length === 0 && <p className="text-sm text-gray-400 text-center py-4">此品牌無可用分店</p>}
           {stores.map((s) => (
-            <button key={s.id} onClick={() => selectStore(s)} disabled={loading}
+            <button key={s.id} onClick={() => selectStore(s)} disabled={storeLoading}
               className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100 disabled:opacity-50"
             >
               <div>
@@ -281,7 +265,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
         </div>
       )}
 
-      {loading && <p className="text-center text-sm text-gray-400">載入中...</p>}
+      {storeLoading && step !== 'stores' && <p className="text-center text-sm text-gray-400">載入中...</p>}
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
       <button onClick={onCancel} className="w-full text-sm text-gray-400 hover:text-gray-600 py-1">取消，改用已儲存店家</button>

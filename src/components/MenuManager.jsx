@@ -6,9 +6,9 @@ import { parseNidinMenu, fuzzyScore, getLocation, formatDistance } from '../lib/
 // ── 你訂匯入 Modal ──────────────────────────────────────────────────
 
 function NidinImportModal({ onImport, onClose }) {
-  const [step, setStep] = useState('search');    // search | brands | stores | preview
+  const [step, setStep] = useState('search');    // search | stores | preview
   const [query, setQuery] = useState('');
-  const [brands, setBrands] = useState([]);
+  const [allBrands, setAllBrands] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [selectedStore, setSelectedStore] = useState(null);
@@ -17,42 +17,37 @@ function NidinImportModal({ onImport, onClose }) {
   const [error, setError] = useState('');
   const locationRef = useRef(null);
 
-  // 元件掛載時靜默取得定位（不阻塞）
+  // 掛載時同時抓品牌清單 + 取得定位（不阻塞）
   useEffect(() => {
     getLocation().then((loc) => { locationRef.current = loc; }).catch(() => {});
+    fetch('/api/nidin?path=brands')
+      .then((r) => r.json())
+      .then((data) => {
+        const seen = new Set();
+        const deduped = (data.brands || []).filter((b) => {
+          const key = b.brand_code || b.id;
+          if (seen.has(key)) return false;
+          seen.add(key); return true;
+        });
+        setAllBrands(deduped);
+      })
+      .catch(() => {});
   }, []);
 
-  async function searchByBrandName() {
-    if (!query.trim()) return;
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('/api/nidin?path=brands');
-      const data = await res.json();
-      const q = query.trim();
-      const scored = (data.brands || [])
-        .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, q), fuzzyScore(b.name_short || '', q)) }))
-        .filter((b) => b._score > 0)
-        .sort((a, b) => b._score - a._score);
-      const seen = new Set();
-      const deduped = scored.filter((b) => {
-        const key = b.brand_code || b.id;
-        if (seen.has(key)) return false;
-        seen.add(key); return true;
-      });
-      setBrands(deduped);
-      setStep('brands');
-    } catch { setError('搜尋失敗，請再試一次'); }
-    finally { setLoading(false); }
-  }
+  // 即時過濾品牌
+  const suggestions = query.trim().length === 0 ? [] : allBrands
+    .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, query.trim()), fuzzyScore(b.name_short || '', query.trim())) }))
+    .filter((b) => b._score > 0)
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 8);
 
   async function selectBrand(brand) {
-    setSelectedBrand(brand); setLoading(true); setError('');
+    setSelectedBrand(brand); setLoading(true); setError(''); setStep('stores');
     try {
       let loc = locationRef.current;
       if (!loc) {
         try { loc = await getLocation(); locationRef.current = loc; } catch { /* 無定位，回退全台列表 */ }
       }
-
       let data;
       if (loc) {
         const res = await fetch(
@@ -65,7 +60,6 @@ function NidinImportModal({ onImport, onClose }) {
         data = await res.json();
       }
       setStores(data.stores || []);
-      setStep('stores');
     } catch { setError('無法取得分店列表'); }
     finally { setLoading(false); }
   }
@@ -82,11 +76,11 @@ function NidinImportModal({ onImport, onClose }) {
   }
 
   function goBack() {
-    const map = { brands: 'search', stores: 'brands', preview: 'stores' };
+    const map = { stores: 'search', preview: 'stores' };
     setStep(map[step] || 'search');
   }
 
-  const stepTitle = { search: '從你訂匯入', brands: `「${query}」結果`, stores: selectedBrand?.name, preview: '確認匯入' };
+  const stepTitle = { search: '從你訂匯入', stores: selectedBrand?.name, preview: '確認匯入' };
 
   return (
     <motion.div
@@ -118,39 +112,31 @@ function NidinImportModal({ onImport, onClose }) {
         {/* Content */}
         <div className="overflow-y-auto flex-1 px-6 pb-4">
           {step === 'search' && (
-            <div className="space-y-3 pt-1">
-              <div className="flex gap-2">
-                <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchByBrandName()}
-                  placeholder="輸入店家名稱（例：50嵐、迷客夏）"
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                  autoFocus
-                />
-                <button onClick={searchByBrandName} disabled={loading || !query.trim()}
-                  className="bg-orange-500 text-white px-5 py-3 rounded-xl font-medium text-sm disabled:opacity-40"
-                >{loading ? '...' : '搜尋'}</button>
-              </div>
-            </div>
-          )}
-
-          {step === 'brands' && (
-            <div className="space-y-1">
-              {brands.length === 0 ? (
-                <p className="text-center text-gray-400 py-6 text-sm">找不到相關店家，請換個關鍵字</p>
-              ) : brands.map((b) => (
-                <button key={b.id} onClick={() => selectBrand(b)}
-                  className="w-full text-left flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
-                >
-                  {b.image
-                    ? <img src={b.image} className="w-10 h-10 rounded-lg object-cover shrink-0" alt="" />
-                    : <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🍱</div>
-                  }
-                  <div>
-                    <div className="font-medium text-gray-800">{b.name}</div>
-                    <div className="text-xs text-gray-400">{b.meal_tag_info?.map((t) => t.name).join('・')}</div>
-                  </div>
-                </button>
-              ))}
+            <div className="space-y-2 pt-1">
+              <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+                placeholder="輸入店家名稱（例：50嵐、迷客夏）"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                autoFocus
+              />
+              {query.trim() && (
+                <div className="space-y-1">
+                  {allBrands.length === 0 && <p className="text-center text-gray-400 py-4 text-sm">品牌清單載入中...</p>}
+                  {allBrands.length > 0 && suggestions.length === 0 && (
+                    <p className="text-center text-gray-400 py-4 text-sm">找不到「{query}」，請換個關鍵字</p>
+                  )}
+                  {suggestions.map((b) => (
+                    <button key={b.brand_code || b.id} onClick={() => selectBrand(b)}
+                      className="w-full text-left flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
+                    >
+                      {b.image
+                        ? <img src={b.image} className="w-10 h-10 rounded-lg object-cover shrink-0" alt="" />
+                        : <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🍱</div>
+                      }
+                      <div className="font-medium text-gray-800">{b.name}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
