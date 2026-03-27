@@ -24,6 +24,7 @@ export function useStore() {
   const [histSessions, setHistSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [announcementText, setAnnouncementText] = useState('');
+  const [siteTitleText, setSiteTitleText] = useState('麻將飲料團');
 
   // 追蹤各 listener 是否已收到第一次資料
   const seen = useRef({ shops: false, active: false, hist: false, orders: false });
@@ -81,6 +82,11 @@ export function useStore() {
     // ── 系統公告（非阻塞載入）───────────────────────────────────
     unsubs.push(onSnapshot(doc(db, 'config', 'announcement'), (snap) => {
       setAnnouncementText(snap.exists() ? (snap.data().text || '') : '');
+    }));
+
+    // ── 系統標題（非阻塞載入）───────────────────────────────────
+    unsubs.push(onSnapshot(doc(db, 'config', 'siteTitle'), (snap) => {
+      setSiteTitleText(snap.exists() ? (snap.data().text || '麻將飲料團') : '麻將飲料團');
     }));
 
     return () => unsubs.forEach((u) => u());
@@ -185,6 +191,10 @@ export function useStore() {
 
   async function setAnnouncement(text) {
     await setDoc(doc(db, 'config', 'announcement'), { text });
+  }
+
+  async function setSiteTitle(text) {
+    await setDoc(doc(db, 'config', 'siteTitle'), { text });
   }
 
   async function markOrderPaid(sessionId, orderId, paid) {
@@ -295,6 +305,8 @@ export function useStore() {
     markOrderPaid,
     announcement: announcementText,
     setAnnouncement,
+    siteTitle: siteTitleText,
+    setSiteTitle,
     addShop,
     updateShop,
     removeShop,

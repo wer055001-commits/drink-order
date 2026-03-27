@@ -22,7 +22,7 @@ const VISIBLE_ROLES = [
   },
 ];
 
-export default function RoleSelect({ onSelect }) {
+export default function RoleSelect({ onSelect, siteTitle }) {
   const [remember, setRemember] = useState(false);
   const [logoTaps, setLogoTaps] = useState(0);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -53,7 +53,7 @@ export default function RoleSelect({ onSelect }) {
           >
             🧋
           </motion.div>
-          <h1 className="text-2xl font-bold text-gray-800">麻將飲料團</h1>
+          <h1 className="text-2xl font-bold text-gray-800">{siteTitle || '麻將飲料團'}</h1>
           <p className="text-gray-500 mt-1">請選擇你的身分</p>
         </motion.div>
 

@@ -9,7 +9,7 @@ const SWITCH_OPTIONS = [
   { key: 'user',   icon: '🧋', label: '使用者', color: 'text-blue-500' },
 ];
 
-export default function Header({ activeSessions, ordersCount, role, onLogout, onSwitchRole }) {
+export default function Header({ activeSessions, ordersCount, role, onLogout, onSwitchRole, siteTitle }) {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -37,7 +37,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
               🧋
             </motion.span>
             <div>
-              <h1 className="text-lg font-bold tracking-wide leading-tight">麻將飲料團</h1>
+              <h1 className="text-lg font-bold tracking-wide leading-tight">{siteTitle || '麻將飲料團'}</h1>
               {activeSessions.length > 0 && (
                 <p className="text-xs text-white/70">{activeSessions.length} 個團購進行中・{ordersCount} 筆訂單</p>
               )}

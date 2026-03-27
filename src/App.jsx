@@ -34,6 +34,8 @@ export default function App() {
     markOrderPaid,
     announcement,
     setAnnouncement,
+    siteTitle,
+    setSiteTitle,
     addShop,
     updateShop,
     removeShop,
@@ -59,7 +61,7 @@ export default function App() {
     setActiveTab('order');
   }
 
-  if (!role) return <RoleSelect onSelect={handleLogin} />;
+  if (!role) return <RoleSelect onSelect={handleLogin} siteTitle={siteTitle} />;
 
   if (loading) {
     return (
@@ -90,6 +92,7 @@ export default function App() {
         role={role}
         onLogout={handleLogout}
         onSwitchRole={handleSwitchRole}
+        siteTitle={siteTitle}
       />
 
       {announcement && (
@@ -164,6 +167,8 @@ export default function App() {
                 onResetShops={resetShops}
                 announcement={announcement}
                 onSetAnnouncement={setAnnouncement}
+                siteTitle={siteTitle}
+                onSetSiteTitle={setSiteTitle}
               />
             </motion.div>
           )}
