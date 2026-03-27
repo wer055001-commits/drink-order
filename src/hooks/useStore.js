@@ -5,6 +5,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { DEFAULT_SHOPS } from '../data/defaultShops';
+import { parseNidinMenu } from '../lib/nidinHelpers';
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -230,6 +231,20 @@ export function useStore() {
     await updateDoc(doc(db, 'shops', shopId), { menu: newMenu });
   }
 
+  // 從你訂直接開團（自動建店 + 開 session）
+  async function importAndStartSession({ name, phone, nidinStoreId, menuData }, durationMinutes = 30) {
+    const shopId = `nidin-${nidinStoreId}`;
+    const menu = parseNidinMenu(menuData).map((item, i) => ({ ...item, id: `item-${Date.now()}-${i}` }));
+    await setDoc(doc(db, 'shops', shopId), {
+      id: shopId,
+      name,
+      phone: phone || '',
+      menu,
+      options: DEFAULT_OPTIONS,
+    });
+    return startSession(shopId, durationMinutes);
+  }
+
   async function resetShops() {
     const batch = writeBatch(db);
     DEFAULT_SHOPS.forEach((s) => batch.set(doc(db, 'shops', s.id), s));
@@ -265,6 +280,7 @@ export function useStore() {
     addMenuItem,
     removeMenuItem,
     importMenuItems,
+    importAndStartSession,
     resetShops,
   };
 }

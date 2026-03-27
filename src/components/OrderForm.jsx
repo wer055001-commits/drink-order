@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCountdown } from '../hooks/useCountdown';
+import { parseNidinMenu, fuzzyScore, getLocation, formatDistance } from '../lib/nidinHelpers';
 
 const DURATION_OPTIONS = [15, 20, 30, 45, 60];
 
@@ -121,81 +122,330 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
   );
 }
 
+// ── 你訂店家選擇器（內嵌在開團流程）───────────────────────────────
+function NidinPicker({ onSelectStore, onCancel }) {
+  const [tab, setTab] = useState('brand');
+  const [step, setStep] = useState('search');
+  const [query, setQuery] = useState('');
+  const [brands, setBrands] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [location, setLocation] = useState(null);
+  const [locLoading, setLocLoading] = useState(false);
+
+  async function requestLocation() {
+    setLocLoading(true); setError('');
+    try { setLocation(await getLocation()); }
+    catch (e) { setError(e.message); }
+    finally { setLocLoading(false); }
+  }
+
+  async function searchByBrand() {
+    if (!query.trim()) return;
+    setLoading(true); setError('');
+    try {
+      const res = await fetch('/api/nidin?path=brands');
+      const data = await res.json();
+      const q = query.trim();
+      const scored = (data.brands || [])
+        .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, q), fuzzyScore(b.name_short || '', q)) }))
+        .filter((b) => b._score > 0)
+        .sort((a, b) => b._score - a._score);
+      setBrands(scored);
+      setStep('brands');
+    } catch { setError('搜尋失敗，請再試一次'); }
+    finally { setLoading(false); }
+  }
+
+  async function searchNearby() {
+    if (!location) return;
+    setLoading(true); setError('');
+    try {
+      const res = await fetch('/api/nidin?path=search/brand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: location.lat, longitude: location.lng, keyword: query.trim(), shopper_id: null, src_type: 0, page: 1, count: 30 }),
+      });
+      const data = await res.json();
+      setBrands(data.brands || []);
+      setStep('brands');
+    } catch { setError('搜尋失敗，請再試一次'); }
+    finally { setLoading(false); }
+  }
+
+  async function selectBrand(brand) {
+    setSelectedBrand(brand); setLoading(true); setError('');
+    try {
+      let data;
+      if (tab === 'nearby' && location) {
+        const res = await fetch(
+          `/api/nidin?path=store/listByPositionNew&latitude=${location.lat}&longitude=${location.lng}&page=1&count=30&src_type=3`,
+          { headers: { 'x-nidin-brand': brand.brand_code } }
+        );
+        data = await res.json();
+      } else {
+        const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
+        data = await res.json();
+      }
+      setStores(data.stores || []);
+      setStep('stores');
+    } catch { setError('無法取得分店列表'); }
+    finally { setLoading(false); }
+  }
+
+  async function selectStore(store) {
+    setLoading(true); setError('');
+    try {
+      const res = await fetch(`/api/nidin?path=store/${store.id}/onShelfMenu`);
+      const menuData = await res.json();
+      onSelectStore({
+        name: `${selectedBrand?.name || ''} ${store.name}`.trim(),
+        phone: store.tel || '',
+        nidinStoreId: store.id,
+        menuData,
+      });
+    } catch { setError('無法取得菜單，請換一家店'); }
+    finally { setLoading(false); }
+  }
+
+  function goBack() {
+    setStep({ brands: 'search', stores: 'brands' }[step] || 'search');
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Tab */}
+      {step === 'search' && (
+        <div className="flex bg-gray-100 rounded-xl p-1">
+          <button onClick={() => setTab('brand')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'brand' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+          >🔍 品牌名稱</button>
+          <button onClick={() => { setTab('nearby'); if (!location) requestLocation(); }}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'nearby' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+          >📍 附近搜尋</button>
+        </div>
+      )}
+
+      {/* 返回列 */}
+      {step !== 'search' && (
+        <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-400 hover:text-orange-500">
+          ← 返回
+        </button>
+      )}
+
+      {/* 搜尋輸入 */}
+      {step === 'search' && tab === 'brand' && (
+        <div className="flex gap-2">
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && searchByBrand()}
+            placeholder="輸入店家名稱（例：50嵐、迷客夏）"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            autoFocus
+          />
+          <button onClick={searchByBrand} disabled={loading || !query.trim()}
+            className="bg-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-40"
+          >{loading ? '⏳' : '搜尋'}</button>
+        </div>
+      )}
+
+      {step === 'search' && tab === 'nearby' && (
+        <div className="space-y-2">
+          {!location ? (
+            <button onClick={requestLocation} disabled={locLoading}
+              className="w-full border-2 border-dashed border-gray-300 rounded-xl py-4 text-sm text-gray-500 hover:border-orange-400 hover:text-orange-500"
+            >{locLoading ? '定位中...' : '📍 點此取得目前位置'}</button>
+          ) : (
+            <p className="text-xs text-green-600 font-medium">✅ 已取得位置</p>
+          )}
+          {location && (
+            <div className="flex gap-2">
+              <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchNearby()}
+                placeholder="輸入類別（飲料、牛肉麵…可留空）"
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+              />
+              <button onClick={searchNearby} disabled={loading}
+                className="bg-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-40"
+              >{loading ? '⏳' : '搜尋'}</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 品牌列表 */}
+      {step === 'brands' && (
+        <div className="space-y-1.5 max-h-64 overflow-y-auto">
+          {brands.length === 0 && <p className="text-sm text-gray-400 text-center py-4">找不到結果</p>}
+          {brands.map((b) => (
+            <button key={b.id} onClick={() => selectBrand(b)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100"
+            >
+              <span className="text-2xl">🏪</span>
+              <div>
+                <div className="font-medium text-gray-800 text-sm">{b.name}</div>
+                {b.name_short && b.name_short !== b.name && <div className="text-xs text-gray-400">{b.name_short}</div>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 分店列表 */}
+      {step === 'stores' && (
+        <div className="space-y-1.5 max-h-64 overflow-y-auto">
+          {stores.length === 0 && <p className="text-sm text-gray-400 text-center py-4">此品牌無可用分店</p>}
+          {stores.map((s) => (
+            <button key={s.id} onClick={() => selectStore(s)} disabled={loading}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100 disabled:opacity-50"
+            >
+              <div>
+                <div className="font-medium text-gray-800 text-sm">{s.name}</div>
+                {s.address && <div className="text-xs text-gray-400 mt-0.5">{s.address}</div>}
+              </div>
+              {s.distance != null && (
+                <span className="text-xs text-orange-400 font-medium shrink-0 ml-2">{formatDistance(s.distance)}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {loading && <p className="text-center text-sm text-gray-400">載入中...</p>}
+      {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+      <button onClick={onCancel} className="w-full text-sm text-gray-400 hover:text-gray-600 py-1">取消，改用已儲存店家</button>
+    </div>
+  );
+}
+
 // ── 建立新團購單表單（團主/管理者）──────────────────────────────
-function CreateSessionForm({ shops, onStartSession, onBack }) {
+function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onBack }) {
+  const [mode, setMode] = useState('nidin');   // 'nidin' | 'saved'
   const [selectedShopId, setSelectedShopId] = useState(shops[0]?.id || '');
   const [duration, setDuration] = useState(30);
+  const [nidinStore, setNidinStore] = useState(null);  // 已選好的你訂店家
+  const [creating, setCreating] = useState(false);
 
   const selectedShop = shops.find((s) => s.id === selectedShopId);
 
-  function handleCreate() {
+  async function handleCreateFromNidin() {
+    if (!nidinStore || creating) return;
+    setCreating(true);
+    await onStartSessionFromNidin(nidinStore, duration);
+    setCreating(false);
+    onBack();
+  }
+
+  function handleCreateFromSaved() {
     if (!selectedShopId) return;
     onStartSession(selectedShopId, duration);
     onBack();
   }
 
+  const DurationSelector = () => (
+    <div>
+      <label className="block text-sm font-semibold text-gray-600 mb-2">開放點餐時間</label>
+      <div className="flex flex-wrap gap-2">
+        {DURATION_OPTIONS.map((d) => (
+          <motion.button key={d} type="button" onClick={() => setDuration(d)}
+            className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${duration === d ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}
+            whileTap={{ scale: 0.95 }}
+          >{d} 分鐘</motion.button>
+        ))}
+        <div className="flex items-center gap-1">
+          <input type="number" min="1" max="10080" placeholder="自訂"
+            className="w-16 border border-gray-200 rounded-xl p-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-300"
+            onChange={(e) => { const v = parseInt(e.target.value, 10); if (v > 0) setDuration(v); }}
+          />
+          <span className="text-sm text-gray-500">分鐘</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <motion.div
-      className="max-w-2xl mx-auto px-4 py-8"
+      className="max-w-2xl mx-auto px-4 py-6"
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.25 }}
     >
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-5">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-sm text-gray-500 hover:text-orange-500 transition-colors">← 返回</button>
+          <button onClick={onBack} className="text-sm text-gray-500 hover:text-orange-500">← 返回</button>
           <div className="flex items-center gap-2">
             <span className="text-2xl">📋</span>
             <h2 className="text-lg font-bold text-gray-700">建立新的團購單</h2>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-2">選擇飲料店</label>
-          <select
-            className="w-full border border-gray-200 rounded-xl p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-300"
-            value={selectedShopId}
-            onChange={(e) => setSelectedShopId(e.target.value)}
-          >
-            {shops.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}（{s.menu.length} 個品項）
-              </option>
-            ))}
-          </select>
-          {selectedShop && selectedShop.menu.length === 0 && (
-            <p className="text-xs text-amber-600 mt-1.5">⚠️ 此店家尚無品項，建議先至「菜單管理」新增後再建立</p>
-          )}
+        {/* 模式切換 */}
+        <div className="flex bg-gray-100 rounded-xl p-1">
+          <button onClick={() => { setMode('nidin'); setNidinStore(null); }}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'nidin' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+          >🛍 從你訂選擇</button>
+          <button onClick={() => setMode('saved')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'saved' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+          >📁 已儲存店家</button>
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-2">開放點餐時間</label>
-          <div className="flex flex-wrap gap-2">
-            {DURATION_OPTIONS.map((d) => (
-              <motion.button key={d} type="button" onClick={() => setDuration(d)}
-                className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${duration === d ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}
-                whileTap={{ scale: 0.95 }}
-              >{d} 分鐘</motion.button>
-            ))}
-            <div className="flex items-center gap-1">
-              <input type="number" min="1" max="10080" placeholder="自訂"
-                className="w-16 border border-gray-200 rounded-xl p-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-300"
-                onChange={(e) => { const v = parseInt(e.target.value, 10); if (v > 0) setDuration(v); }}
-              />
-              <span className="text-sm text-gray-500">分鐘</span>
+        {/* 你訂搜尋模式 */}
+        {mode === 'nidin' && !nidinStore && (
+          <NidinPicker
+            onSelectStore={setNidinStore}
+            onCancel={() => setMode('saved')}
+          />
+        )}
+
+        {/* 你訂已選好店家 */}
+        {mode === 'nidin' && nidinStore && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
+              <div>
+                <p className="font-semibold text-gray-800">{nidinStore.name}</p>
+                {nidinStore.phone && <p className="text-xs text-gray-500 mt-0.5">📞 {nidinStore.phone}</p>}
+              </div>
+              <button onClick={() => setNidinStore(null)} className="text-xs text-gray-400 hover:text-red-500">重選</button>
             </div>
+            <DurationSelector />
+            <motion.button
+              onClick={handleCreateFromNidin}
+              disabled={creating}
+              className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 disabled:opacity-60 transition-colors"
+              whileTap={{ scale: 0.98 }}
+            >{creating ? '建立中...' : `建立團購單（限時 ${duration} 分鐘）`}</motion.button>
           </div>
-        </div>
+        )}
 
-        <motion.button
-          onClick={handleCreate}
-          className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          建立團購單（限時 {duration} 分鐘）
-        </motion.button>
+        {/* 已儲存店家模式 */}
+        {mode === 'saved' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-2">選擇店家</label>
+              <select
+                className="w-full border border-gray-200 rounded-xl p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                value={selectedShopId}
+                onChange={(e) => setSelectedShopId(e.target.value)}
+              >
+                {shops.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}（{s.menu.length} 個品項）</option>
+                ))}
+              </select>
+              {selectedShop?.menu.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1.5">⚠️ 此店家尚無品項</p>
+              )}
+            </div>
+            <DurationSelector />
+            <motion.button
+              onClick={handleCreateFromSaved}
+              className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+              whileTap={{ scale: 0.98 }}
+            >建立團購單（限時 {duration} 分鐘）</motion.button>
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -414,7 +664,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
 // ── 主元件 ───────────────────────────────────────────────────────
 export default function OrderForm({
   shops, activeSessions,
-  onStartSession, onAddOrder,
+  onStartSession, onStartSessionFromNidin, onAddOrder,
   onCloseSession, onResetSession, onContinueSession, onExtendSession,
   getActiveSessionOrders, isLeader, onSaveUserName, getUserName,
 }) {
@@ -437,6 +687,7 @@ export default function OrderForm({
       <CreateSessionForm
         shops={shops}
         onStartSession={onStartSession}
+        onStartSessionFromNidin={onStartSessionFromNidin}
         onBack={() => setView('list')}
       />
     );

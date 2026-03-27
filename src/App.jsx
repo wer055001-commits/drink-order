@@ -39,6 +39,7 @@ export default function App() {
     addMenuItem,
     removeMenuItem,
     importMenuItems,
+    importAndStartSession,
     resetShops,
   } = useStore();
 
@@ -108,6 +109,7 @@ export default function App() {
                 shops={shops}
                 activeSessions={activeSessions}
                 onStartSession={startSession}
+                onStartSessionFromNidin={importAndStartSession}
                 onAddOrder={addOrder}
                 onCloseSession={closeSession}
                 onResetSession={resetSession}
