@@ -77,9 +77,14 @@ function NidinImportModal({ onImport, onClose }) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
           const data = await res.json();
           stores = (data.stores || [])
-            .map((s) => ({ ...s, distance: s.lat && s.lng ? calcDistance(loc.lat, loc.lng, parseFloat(s.lat), parseFloat(s.lng)) : null }))
-            .filter((s) => s.distance === null || s.distance <= 30000)
-            .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+            .map((s) => {
+              const sLat = parseFloat(s.lat ?? s.latitude ?? s.location?.lat ?? '');
+              const sLng = parseFloat(s.lng ?? s.longitude ?? s.lon ?? s.location?.lng ?? '');
+              const dist = !isNaN(sLat) && !isNaN(sLng) ? calcDistance(loc.lat, loc.lng, sLat, sLng) : null;
+              return { ...s, distance: dist };
+            })
+            .filter((s) => s.distance !== null && s.distance <= 30000)
+            .sort((a, b) => a.distance - b.distance);
         }
       } else {
         if (brand.id) {

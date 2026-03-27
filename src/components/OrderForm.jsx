@@ -213,15 +213,23 @@ function NidinPicker({ onSelectStore, onCancel }) {
           dbg(`方法2 附近全部:${allStores.length} 過濾後:${stores.length}`);
         }
 
-        // 方法3：全台清單，自行用 Haversine 篩 30km 內
+        // 方法3：全台清單，嘗試多種座標欄位名稱，篩 30km 內
         if (stores.length === 0 && brand.id) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
           const data = await res.json();
-          const before = (data.stores || []).length;
-          stores = (data.stores || [])
-            .map((s) => ({ ...s, distance: s.lat && s.lng ? calcDistance(loc.lat, loc.lng, parseFloat(s.lat), parseFloat(s.lng)) : null }))
-            .filter((s) => s.distance === null || s.distance <= 30000)
-            .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+          const allS = data.stores || [];
+          // 顯示第一筆的 key，幫助診斷座標欄位名稱
+          if (allS[0]) dbg(`方法3 第一筆 keys:${Object.keys(allS[0]).join(',')}`);
+          const before = allS.length;
+          stores = allS
+            .map((s) => {
+              const sLat = parseFloat(s.lat ?? s.latitude ?? s.location?.lat ?? '');
+              const sLng = parseFloat(s.lng ?? s.longitude ?? s.lon ?? s.location?.lng ?? '');
+              const dist = !isNaN(sLat) && !isNaN(sLng) ? calcDistance(loc.lat, loc.lng, sLat, sLng) : null;
+              return { ...s, distance: dist };
+            })
+            .filter((s) => s.distance !== null && s.distance <= 30000)
+            .sort((a, b) => a.distance - b.distance);
           dbg(`方法3 全台:${before} 30km內:${stores.length}`);
         }
       } else {
