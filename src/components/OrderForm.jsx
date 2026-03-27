@@ -179,7 +179,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
         body: JSON.stringify({ latitude: location.lat, longitude: location.lng, keyword: query.trim(), shopper_id: null, src_type: 0, page: 1, count: 30 }),
       });
       const data = await res.json();
-      setBrands(data.brands || []);
+      setBrands(data.brand?.list || []);
       setStep('brands');
     } catch { setError('搜尋失敗，請再試一次'); }
     finally { setLoading(false); }
