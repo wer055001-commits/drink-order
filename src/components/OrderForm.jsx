@@ -177,28 +177,46 @@ function NidinPicker({ onSelectStore, onCancel }) {
 
       let stores = [];
 
-      // 優先：附近分店（有定位 + 有 brand_code）
-      if (loc && brand.brand_code) {
-        const res = await fetch(
-          `/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=30&src_type=3`,
-          { headers: { 'x-nidin-brand': brand.brand_code } }
-        );
-        const data = await res.json();
-        stores = data.stores || [];
-      }
+      if (loc) {
+        // 方法1：listByPositionNew + brand_code header
+        if (brand.brand_code) {
+          const res = await fetch(
+            `/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=50&src_type=3`,
+            { headers: { 'x-nidin-brand': brand.brand_code } }
+          );
+          const data = await res.json();
+          stores = data.stores || [];
+        }
 
-      // Fallback：全台分店列表，有定位就自行算距離篩 30km 內
-      if (stores.length === 0 && brand.id) {
-        const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
-        const data = await res.json();
-        let all = data.stores || [];
-        if (loc) {
-          all = all
+        // 方法2：listByPositionNew 不帶 brand filter，前端用品牌名過濾
+        if (stores.length === 0) {
+          const res = await fetch(
+            `/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=50&src_type=3`
+          );
+          const data = await res.json();
+          const brandName = brand.name?.toLowerCase() || '';
+          stores = (data.stores || []).filter((s) =>
+            s.brand_name?.toLowerCase().includes(brandName) ||
+            s.name?.toLowerCase().includes(brandName)
+          );
+        }
+
+        // 方法3：全台清單，自行用 Haversine 篩 30km 內
+        if (stores.length === 0 && brand.id) {
+          const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
+          const data = await res.json();
+          stores = (data.stores || [])
             .map((s) => ({ ...s, distance: s.lat && s.lng ? calcDistance(loc.lat, loc.lng, parseFloat(s.lat), parseFloat(s.lng)) : null }))
             .filter((s) => s.distance === null || s.distance <= 30000)
             .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
         }
-        stores = all;
+      } else {
+        // 無定位，直接抓全台清單
+        if (brand.id) {
+          const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
+          const data = await res.json();
+          stores = data.stores || [];
+        }
       }
 
       setStores(stores);
