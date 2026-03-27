@@ -178,6 +178,8 @@ function NidinPicker({ onSelectStore, onCancel }) {
       let stores = [];
 
       if (loc) {
+        console.log('[nidin] 定位成功:', loc);
+
         // 方法1：listByPositionNew + brand_code header
         if (brand.brand_code) {
           const res = await fetch(
@@ -185,7 +187,8 @@ function NidinPicker({ onSelectStore, onCancel }) {
             { headers: { 'x-nidin-brand': brand.brand_code } }
           );
           const data = await res.json();
-          stores = data.stores || [];
+          console.log('[nidin] listByPositionNew (with brand):', JSON.stringify(data).slice(0, 300));
+          stores = data.stores || data.store_list || data.data?.stores || [];
         }
 
         // 方法2：listByPositionNew 不帶 brand filter，前端用品牌名過濾
@@ -194,8 +197,10 @@ function NidinPicker({ onSelectStore, onCancel }) {
             `/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=50&src_type=3`
           );
           const data = await res.json();
+          console.log('[nidin] listByPositionNew (no brand):', JSON.stringify(data).slice(0, 300));
+          const allStores = data.stores || data.store_list || data.data?.stores || [];
           const brandName = brand.name?.toLowerCase() || '';
-          stores = (data.stores || []).filter((s) =>
+          stores = allStores.filter((s) =>
             s.brand_name?.toLowerCase().includes(brandName) ||
             s.name?.toLowerCase().includes(brandName)
           );
@@ -205,12 +210,14 @@ function NidinPicker({ onSelectStore, onCancel }) {
         if (stores.length === 0 && brand.id) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
           const data = await res.json();
+          console.log('[nidin] brand stores fallback, total:', (data.stores || []).length);
           stores = (data.stores || [])
             .map((s) => ({ ...s, distance: s.lat && s.lng ? calcDistance(loc.lat, loc.lng, parseFloat(s.lat), parseFloat(s.lng)) : null }))
             .filter((s) => s.distance === null || s.distance <= 30000)
             .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
         }
       } else {
+        console.log('[nidin] 無定位，抓全台清單');
         // 無定位，直接抓全台清單
         if (brand.id) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
