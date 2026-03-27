@@ -159,7 +159,14 @@ function NidinPicker({ onSelectStore, onCancel }) {
         .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, q), fuzzyScore(b.name_short || '', q)) }))
         .filter((b) => b._score > 0)
         .sort((a, b) => b._score - a._score);
-      setBrands(scored);
+      // 依 brand_code 去重，保留分數最高的
+      const seen = new Set();
+      const deduped = scored.filter((b) => {
+        const key = b.brand_code || b.id;
+        if (seen.has(key)) return false;
+        seen.add(key); return true;
+      });
+      setBrands(deduped);
       setStep('brands');
     } catch { setError('搜尋失敗，請再試一次'); }
     finally { setLoading(false); }
@@ -240,14 +247,14 @@ function NidinPicker({ onSelectStore, onCancel }) {
           {loading && <p className="text-sm text-gray-400 text-center py-4">載入中...</p>}
           {!loading && brands.length === 0 && <p className="text-sm text-gray-400 text-center py-4">找不到結果，請換個關鍵字</p>}
           {brands.map((b) => (
-            <button key={b.id} onClick={() => selectBrand(b)}
+            <button key={b.brand_code || b.id} onClick={() => selectBrand(b)}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100"
             >
-              <span className="text-2xl">🏪</span>
-              <div>
-                <div className="font-medium text-gray-800 text-sm">{b.name}</div>
-                {b.name_short && b.name_short !== b.name && <div className="text-xs text-gray-400">{b.name_short}</div>}
-              </div>
+              {b.image
+                ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
+                : <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🏪</div>
+              }
+              <div className="font-medium text-gray-800 text-sm">{b.name}</div>
             </button>
           ))}
         </div>

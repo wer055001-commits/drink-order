@@ -33,7 +33,13 @@ function NidinImportModal({ onImport, onClose }) {
         .map((b) => ({ ...b, _score: Math.max(fuzzyScore(b.name, q), fuzzyScore(b.name_short || '', q)) }))
         .filter((b) => b._score > 0)
         .sort((a, b) => b._score - a._score);
-      setBrands(scored);
+      const seen = new Set();
+      const deduped = scored.filter((b) => {
+        const key = b.brand_code || b.id;
+        if (seen.has(key)) return false;
+        seen.add(key); return true;
+      });
+      setBrands(deduped);
       setStep('brands');
     } catch { setError('搜尋失敗，請再試一次'); }
     finally { setLoading(false); }
