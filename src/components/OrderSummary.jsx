@@ -137,19 +137,24 @@ function buildCopyText(orders, session) {
   const date = session?.date || '';
   let text = `【${shopName} ${date} 團購訂單】\n\n`;
 
-  // 依飲料款式分組，人名寫前面
-  const grouped = {};
+  // 依人名分組，條列每人的飲料與價格
+  const byName = {};
   orders.forEach((o) => {
-    const key = `${o.drink}(${o.size}) ${o.sugar} ${o.ice}${o.toppings.length ? ' +' + o.toppings.join('+') : ''}`;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(o.name);
+    if (!byName[o.name]) byName[o.name] = [];
+    const drink = `${o.drink}(${o.size}) ${o.sugar} ${o.ice}${o.toppings.length ? ' +' + o.toppings.join('+') : ''}`;
+    byName[o.name].push({ drink, price: o.price });
   });
-  Object.entries(grouped).forEach(([key, names]) => {
-    text += `${names.join('、')} — ${key}\n`;
+  Object.entries(byName).forEach(([name, items]) => {
+    const personTotal = items.reduce((s, i) => s + i.price, 0);
+    text += `${name}（NT$${personTotal}）\n`;
+    items.forEach(({ drink, price }) => {
+      text += ` - ${drink}  NT$${price}\n`;
+    });
+    text += '\n';
   });
 
   const t = orders.reduce((s, o) => s + o.price, 0);
-  text += `\n共 ${orders.length} 杯，合計 NT$${t}`;
+  text += `共 ${orders.length} 杯，合計 NT$${t}`;
   return text;
 }
 
