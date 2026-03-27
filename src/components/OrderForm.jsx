@@ -141,7 +141,13 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [storeLoading, setStoreLoading] = useState(false);
   const [error, setError] = useState('');
+  const [debugLog, setDebugLog] = useState([]);
   const locationRef = useRef(null);
+
+  function dbg(msg) {
+    console.log(msg);
+    setDebugLog((prev) => [...prev, msg]);
+  }
 
   // 掛載時同時抓品牌清單 + 取得定位（不阻塞）
   useEffect(() => {
@@ -178,7 +184,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
       let stores = [];
 
       if (loc) {
-        console.log('[nidin] 定位成功:', loc);
+        dbg(`✅ 定位成功 lat:${loc.lat.toFixed(4)} lng:${loc.lng.toFixed(4)}`);
 
         // 方法1：listByPositionNew + brand_code header
         if (brand.brand_code) {
@@ -187,8 +193,9 @@ function NidinPicker({ onSelectStore, onCancel }) {
             { headers: { 'x-nidin-brand': brand.brand_code } }
           );
           const data = await res.json();
-          console.log('[nidin] listByPositionNew (with brand):', JSON.stringify(data).slice(0, 300));
+          const keys = Object.keys(data).join(', ');
           stores = data.stores || data.store_list || data.data?.stores || [];
+          dbg(`方法1 回傳 keys:[${keys}] 分店數:${stores.length}`);
         }
 
         // 方法2：listByPositionNew 不帶 brand filter，前端用品牌名過濾
@@ -197,28 +204,28 @@ function NidinPicker({ onSelectStore, onCancel }) {
             `/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=50&src_type=3`
           );
           const data = await res.json();
-          console.log('[nidin] listByPositionNew (no brand):', JSON.stringify(data).slice(0, 300));
           const allStores = data.stores || data.store_list || data.data?.stores || [];
           const brandName = brand.name?.toLowerCase() || '';
           stores = allStores.filter((s) =>
             s.brand_name?.toLowerCase().includes(brandName) ||
             s.name?.toLowerCase().includes(brandName)
           );
+          dbg(`方法2 附近全部:${allStores.length} 過濾後:${stores.length}`);
         }
 
         // 方法3：全台清單，自行用 Haversine 篩 30km 內
         if (stores.length === 0 && brand.id) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
           const data = await res.json();
-          console.log('[nidin] brand stores fallback, total:', (data.stores || []).length);
+          const before = (data.stores || []).length;
           stores = (data.stores || [])
             .map((s) => ({ ...s, distance: s.lat && s.lng ? calcDistance(loc.lat, loc.lng, parseFloat(s.lat), parseFloat(s.lng)) : null }))
             .filter((s) => s.distance === null || s.distance <= 30000)
             .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+          dbg(`方法3 全台:${before} 30km內:${stores.length}`);
         }
       } else {
-        console.log('[nidin] 無定位，抓全台清單');
-        // 無定位，直接抓全台清單
+        dbg('❌ 定位失敗，抓全台清單');
         if (brand.id) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
           const data = await res.json();
@@ -308,6 +315,15 @@ function NidinPicker({ onSelectStore, onCancel }) {
 
       {storeLoading && step !== 'stores' && <p className="text-center text-sm text-gray-400">載入中...</p>}
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+      {/* Debug 訊息（暫時顯示，方便診斷） */}
+      {debugLog.length > 0 && (
+        <div className="bg-gray-50 rounded-xl p-3 space-y-1">
+          {debugLog.map((msg, i) => (
+            <p key={i} className="text-xs text-gray-500 font-mono">{msg}</p>
+          ))}
+        </div>
+      )}
 
       <button onClick={onCancel} className="w-full text-sm text-gray-400 hover:text-gray-600 py-1">取消，改用已儲存店家</button>
     </div>
