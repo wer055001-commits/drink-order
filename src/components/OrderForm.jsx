@@ -141,14 +141,10 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [storeLoading, setStoreLoading] = useState(false);
   const [error, setError] = useState('');
-  const [debugLog, setDebugLog] = useState([]);
   const [radiusKm, setRadiusKm] = useState(10);
   const locationRef = useRef(null);
 
-  function dbg(msg) {
-    console.log(msg);
-    setDebugLog((prev) => [...prev, msg]);
-  }
+  function dbg(msg) { console.log(msg); }
 
   // 掛載時同時抓品牌清單 + 取得定位（不阻塞）
   useEffect(() => {
@@ -333,14 +329,6 @@ function NidinPicker({ onSelectStore, onCancel }) {
       {storeLoading && step !== 'stores' && <p className="text-center text-sm text-gray-400">載入中...</p>}
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
-      {/* Debug 訊息（暫時顯示，方便診斷） */}
-      {debugLog.length > 0 && (
-        <div className="bg-gray-50 rounded-xl p-3 space-y-1">
-          {debugLog.map((msg, i) => (
-            <p key={i} className="text-xs text-gray-500 font-mono">{msg}</p>
-          ))}
-        </div>
-      )}
 
       <button onClick={onCancel} className="w-full text-sm text-gray-400 hover:text-gray-600 py-1">取消，改用已儲存店家</button>
     </div>
