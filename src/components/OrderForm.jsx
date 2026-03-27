@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCountdown } from '../hooks/useCountdown';
-import { parseNidinMenu, fuzzyScore, getLocation, formatDistance } from '../lib/nidinHelpers';
+import { parseNidinMenu, fuzzyScore, getLocation, formatDistance, calcDistance } from '../lib/nidinHelpers';
 
 const DURATION_OPTIONS = [15, 20, 30, 45, 60];
 
@@ -187,11 +187,18 @@ function NidinPicker({ onSelectStore, onCancel }) {
         stores = data.stores || [];
       }
 
-      // Fallback：全台分店列表（附近找不到時）
+      // Fallback：全台分店列表，有定位就自行算距離篩 30km 內
       if (stores.length === 0 && brand.id) {
         const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
         const data = await res.json();
-        stores = data.stores || [];
+        let all = data.stores || [];
+        if (loc) {
+          all = all
+            .map((s) => ({ ...s, distance: s.lat && s.lng ? calcDistance(loc.lat, loc.lng, parseFloat(s.lat), parseFloat(s.lng)) : null }))
+            .filter((s) => s.distance === null || s.distance <= 30000)
+            .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+        }
+        stores = all;
       }
 
       setStores(stores);
