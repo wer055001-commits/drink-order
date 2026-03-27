@@ -142,6 +142,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [storeLoading, setStoreLoading] = useState(false);
   const [error, setError] = useState('');
   const [debugLog, setDebugLog] = useState([]);
+  const [radiusKm, setRadiusKm] = useState(10);
   const locationRef = useRef(null);
 
   function dbg(msg) {
@@ -213,14 +214,14 @@ function NidinPicker({ onSelectStore, onCancel }) {
           dbg(`方法2 附近全部:${allStores.length} 過濾後:${stores.length}`);
         }
 
-        // 方法3：全台清單，嘗試多種座標欄位名稱，篩 30km 內
+        // 方法3：全台清單，依設定半徑篩選
         if (stores.length === 0 && brand.id) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
           const data = await res.json();
           const allS = data.stores || [];
-          // 顯示第一筆的 key，幫助診斷座標欄位名稱
           if (allS[0]) dbg(`方法3 第一筆 keys:${Object.keys(allS[0]).join(',')}`);
           const before = allS.length;
+          const radiusM = radiusKm * 1000;
           stores = allS
             .map((s) => {
               const sLat = parseFloat(s.lat ?? s.latitude ?? s.location?.lat ?? '');
@@ -228,9 +229,9 @@ function NidinPicker({ onSelectStore, onCancel }) {
               const dist = !isNaN(sLat) && !isNaN(sLng) ? calcDistance(loc.lat, loc.lng, sLat, sLng) : null;
               return { ...s, distance: dist };
             })
-            .filter((s) => s.distance !== null && s.distance <= 30000)
+            .filter((s) => s.distance !== null && s.distance <= radiusM)
             .sort((a, b) => a.distance - b.distance);
-          dbg(`方法3 全台:${before} 30km內:${stores.length}`);
+          dbg(`方法3 全台:${before} ${radiusKm}km內:${stores.length}`);
         }
       } else {
         dbg('❌ 定位失敗，抓全台清單');
@@ -272,12 +273,20 @@ function NidinPicker({ onSelectStore, onCancel }) {
 
       {/* 搜尋輸入 + 即時建議 */}
       {step === 'search' && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
             placeholder="輸入店家名稱（例：50嵐、迷客夏）"
             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
             autoFocus
           />
+          <div className="flex items-center gap-3 px-1">
+            <span className="text-xs text-gray-400 shrink-0">搜尋範圍</span>
+            <input type="range" min="1" max="50" value={radiusKm}
+              onChange={(e) => setRadiusKm(Number(e.target.value))}
+              className="flex-1 accent-orange-500"
+            />
+            <span className="text-xs font-medium text-orange-500 w-10 text-right shrink-0">{radiusKm} km</span>
+          </div>
           {query.trim() && (
             <div className="space-y-1 max-h-60 overflow-y-auto">
               {allBrands.length === 0 && <p className="text-xs text-gray-400 text-center py-3">品牌清單載入中...</p>}
