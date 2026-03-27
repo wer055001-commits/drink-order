@@ -242,7 +242,18 @@ export function useStore() {
       menu,
       options: DEFAULT_OPTIONS,
     });
-    return startSession(shopId, durationMinutes);
+    // 直接帶入 name，避免 Firebase 非同步尚未更新 shops state 導致 shopName 空白
+    const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
+    const ref = await addDoc(collection(db, 'sessions'), {
+      shopId,
+      shopName: name,
+      date: today(),
+      status: 'open',
+      durationMinutes,
+      createdAt: new Date().toISOString(),
+      expiresAt,
+    });
+    return ref.id;
   }
 
   async function resetShops() {
