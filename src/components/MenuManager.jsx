@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { parseNidinMenu, fuzzyScore, getLocation, formatDistance } from '../lib/nidinHelpers';
@@ -6,7 +6,6 @@ import { parseNidinMenu, fuzzyScore, getLocation, formatDistance } from '../lib/
 // ── 你訂匯入 Modal ──────────────────────────────────────────────────
 
 function NidinImportModal({ onImport, onClose }) {
-  const [tab, setTab] = useState('brand');       // 'brand' | 'nearby'
   const [step, setStep] = useState('search');    // search | brands | stores | preview
   const [query, setQuery] = useState('');
   const [brands, setBrands] = useState([]);
@@ -16,19 +15,13 @@ function NidinImportModal({ onImport, onClose }) {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [location, setLocation] = useState(null);  // { lat, lng }
-  const [locLoading, setLocLoading] = useState(false);
+  const locationRef = useRef(null);
 
-  async function requestLocation() {
-    setLocLoading(true); setError('');
-    try {
-      const loc = await getLocation();
-      setLocation(loc);
-    } catch (e) { setError(e.message); }
-    finally { setLocLoading(false); }
-  }
+  // 元件掛載時靜默取得定位（不阻塞）
+  useEffect(() => {
+    getLocation().then((loc) => { locationRef.current = loc; }).catch(() => {});
+  }, []);
 
-  // 品牌名稱搜尋（模糊）
   async function searchByBrandName() {
     if (!query.trim()) return;
     setLoading(true); setError('');
@@ -46,34 +39,12 @@ function NidinImportModal({ onImport, onClose }) {
     finally { setLoading(false); }
   }
 
-  // 附近搜尋（位置 + 關鍵字）
-  async function searchNearby() {
-    if (!location) return;
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('/api/nidin?path=search/brand', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latitude: location.lat, longitude: location.lng, keyword: query.trim(), shopper_id: null, src_type: 0, page: 1, count: 30 }),
-      });
-      const data = await res.json();
-      setBrands(data.brand?.list || []);
-      setStep('brands');
-    } catch { setError('搜尋失敗，請再試一次'); }
-    finally { setLoading(false); }
-  }
-
-  function handleSearch() {
-    if (tab === 'brand') searchByBrandName();
-    else searchNearby();
-  }
-
   async function selectBrand(brand) {
     setSelectedBrand(brand); setLoading(true); setError('');
     try {
-      let loc = location;
+      let loc = locationRef.current;
       if (!loc) {
-        try { loc = await getLocation(); setLocation(loc); } catch { /* 無定位，回退全台列表 */ }
+        try { loc = await getLocation(); locationRef.current = loc; } catch { /* 無定位，回退全台列表 */ }
       }
 
       let data;
@@ -109,7 +80,7 @@ function NidinImportModal({ onImport, onClose }) {
     setStep(map[step] || 'search');
   }
 
-  const stepTitle = { search: '從你訂匯入', brands: `「${query || '附近'}」結果`, stores: selectedBrand?.name, preview: '確認匯入' };
+  const stepTitle = { search: '從你訂匯入', brands: `「${query}」結果`, stores: selectedBrand?.name, preview: '確認匯入' };
 
   return (
     <motion.div
@@ -136,70 +107,23 @@ function NidinImportModal({ onImport, onClose }) {
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
           </div>
-          {/* Tab 切換（只在 search 步驟顯示） */}
-          {step === 'search' && (
-            <div className="flex bg-gray-100 rounded-xl p-1">
-              <button onClick={() => setTab('brand')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'brand' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
-              >🔍 品牌名稱</button>
-              <button onClick={() => { setTab('nearby'); if (!location) requestLocation(); }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'nearby' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
-              >📍 附近搜尋</button>
-            </div>
-          )}
         </div>
 
         {/* Content */}
         <div className="overflow-y-auto flex-1 px-6 pb-4">
-          {step === 'search' && tab === 'brand' && (
+          {step === 'search' && (
             <div className="space-y-3 pt-1">
-              <p className="text-sm text-gray-500">支援模糊搜尋，打「50嵐」「五十嵐」「50l」都能找到</p>
               <div className="flex gap-2">
                 <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="輸入店家名稱..."
+                  onKeyDown={(e) => e.key === 'Enter' && searchByBrandName()}
+                  placeholder="輸入店家名稱（例：50嵐、迷客夏）"
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
                   autoFocus
                 />
-                <button onClick={handleSearch} disabled={loading || !query.trim()}
+                <button onClick={searchByBrandName} disabled={loading || !query.trim()}
                   className="bg-orange-500 text-white px-5 py-3 rounded-xl font-medium text-sm disabled:opacity-40"
                 >{loading ? '...' : '搜尋'}</button>
               </div>
-            </div>
-          )}
-
-          {step === 'search' && tab === 'nearby' && (
-            <div className="space-y-3 pt-1">
-              {!location ? (
-                <div className="text-center py-6">
-                  {locLoading ? (
-                    <p className="text-gray-400 text-sm">定位中...</p>
-                  ) : (
-                    <>
-                      <p className="text-4xl mb-3">📍</p>
-                      <p className="text-gray-600 text-sm mb-4">需要你的位置才能搜尋附近店家</p>
-                      <button onClick={requestLocation}
-                        className="bg-orange-500 text-white px-6 py-2.5 rounded-xl font-medium text-sm"
-                      >允許定位</button>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <p className="text-sm text-green-600 flex items-center gap-1">✓ 已取得位置</p>
-                  <div className="flex gap-2">
-                    <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      placeholder="輸入類別或店名（例：牛肉麵、飲料）"
-                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                      autoFocus
-                    />
-                    <button onClick={handleSearch} disabled={loading}
-                      className="bg-orange-500 text-white px-5 py-3 rounded-xl font-medium text-sm disabled:opacity-40"
-                    >{loading ? '...' : '搜尋'}</button>
-                  </div>
-                </>
-              )}
             </div>
           )}
 

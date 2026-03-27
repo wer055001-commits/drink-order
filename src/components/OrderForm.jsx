@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCountdown } from '../hooks/useCountdown';
 import { parseNidinMenu, fuzzyScore, getLocation, formatDistance } from '../lib/nidinHelpers';
@@ -134,7 +134,6 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
 
 // ── 你訂店家選擇器（內嵌在開團流程）───────────────────────────────
 function NidinPicker({ onSelectStore, onCancel }) {
-  const [tab, setTab] = useState('brand');
   const [step, setStep] = useState('search');
   const [query, setQuery] = useState('');
   const [brands, setBrands] = useState([]);
@@ -142,15 +141,12 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [location, setLocation] = useState(null);
-  const [locLoading, setLocLoading] = useState(false);
+  const locationRef = useRef(null);
 
-  async function requestLocation() {
-    setLocLoading(true); setError('');
-    try { setLocation(await getLocation()); }
-    catch (e) { setError(e.message); }
-    finally { setLocLoading(false); }
-  }
+  // 元件掛載時靜默取得定位（不阻塞）
+  useEffect(() => {
+    getLocation().then((loc) => { locationRef.current = loc; }).catch(() => {});
+  }, []);
 
   async function searchByBrand() {
     if (!query.trim()) return;
@@ -169,29 +165,13 @@ function NidinPicker({ onSelectStore, onCancel }) {
     finally { setLoading(false); }
   }
 
-  async function searchNearby() {
-    if (!location) return;
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('/api/nidin?path=search/brand', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latitude: location.lat, longitude: location.lng, keyword: query.trim(), shopper_id: null, src_type: 0, page: 1, count: 30 }),
-      });
-      const data = await res.json();
-      setBrands(data.brand?.list || []);
-      setStep('brands');
-    } catch { setError('搜尋失敗，請再試一次'); }
-    finally { setLoading(false); }
-  }
-
   async function selectBrand(brand) {
     setSelectedBrand(brand); setLoading(true); setError('');
     try {
-      // 優先嘗試取得定位，用附近門市 API（不論是品牌或附近搜尋模式）
-      let loc = location;
+      // 若定位尚未完成，再等一次
+      let loc = locationRef.current;
       if (!loc) {
-        try { loc = await getLocation(); setLocation(loc); } catch { /* 無定位，回退全台列表 */ }
+        try { loc = await getLocation(); locationRef.current = loc; } catch { /* 無定位，回退全台列表 */ }
       }
 
       let data;
@@ -202,7 +182,6 @@ function NidinPicker({ onSelectStore, onCancel }) {
         );
         data = await res.json();
       } else {
-        // 定位失敗，回退到全台所有分店
         const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
         data = await res.json();
       }
@@ -233,18 +212,6 @@ function NidinPicker({ onSelectStore, onCancel }) {
 
   return (
     <div className="space-y-3">
-      {/* Tab */}
-      {step === 'search' && (
-        <div className="flex bg-gray-100 rounded-xl p-1">
-          <button onClick={() => setTab('brand')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'brand' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
-          >🔍 品牌名稱</button>
-          <button onClick={() => { setTab('nearby'); if (!location) requestLocation(); }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'nearby' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
-          >📍 附近搜尋</button>
-        </div>
-      )}
-
       {/* 返回列 */}
       {step !== 'search' && (
         <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-400 hover:text-orange-500">
@@ -252,8 +219,8 @@ function NidinPicker({ onSelectStore, onCancel }) {
         </button>
       )}
 
-      {/* 搜尋輸入 */}
-      {step === 'search' && tab === 'brand' && (
+      {/* 搜尋輸入（單一模式） */}
+      {step === 'search' && (
         <div className="flex gap-2">
           <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && searchByBrand()}
@@ -267,34 +234,11 @@ function NidinPicker({ onSelectStore, onCancel }) {
         </div>
       )}
 
-      {step === 'search' && tab === 'nearby' && (
-        <div className="space-y-2">
-          {!location ? (
-            <button onClick={requestLocation} disabled={locLoading}
-              className="w-full border-2 border-dashed border-gray-300 rounded-xl py-4 text-sm text-gray-500 hover:border-orange-400 hover:text-orange-500"
-            >{locLoading ? '定位中...' : '📍 點此取得目前位置'}</button>
-          ) : (
-            <p className="text-xs text-green-600 font-medium">✅ 已取得位置</p>
-          )}
-          {location && (
-            <div className="flex gap-2">
-              <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && searchNearby()}
-                placeholder="輸入類別（飲料、牛肉麵…可留空）"
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-              />
-              <button onClick={searchNearby} disabled={loading}
-                className="bg-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-40"
-              >{loading ? '⏳' : '搜尋'}</button>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* 品牌列表 */}
       {step === 'brands' && (
         <div className="space-y-1.5 max-h-64 overflow-y-auto">
-          {brands.length === 0 && <p className="text-sm text-gray-400 text-center py-4">找不到結果</p>}
+          {loading && <p className="text-sm text-gray-400 text-center py-4">載入中...</p>}
+          {!loading && brands.length === 0 && <p className="text-sm text-gray-400 text-center py-4">找不到結果，請換個關鍵字</p>}
           {brands.map((b) => (
             <button key={b.id} onClick={() => selectBrand(b)}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100"
@@ -312,7 +256,8 @@ function NidinPicker({ onSelectStore, onCancel }) {
       {/* 分店列表 */}
       {step === 'stores' && (
         <div className="space-y-1.5 max-h-64 overflow-y-auto">
-          {stores.length === 0 && <p className="text-sm text-gray-400 text-center py-4">此品牌無可用分店</p>}
+          {loading && <p className="text-sm text-gray-400 text-center py-4">定位中，搜尋附近分店...</p>}
+          {!loading && stores.length === 0 && <p className="text-sm text-gray-400 text-center py-4">此品牌無可用分店</p>}
           {stores.map((s) => (
             <button key={s.id} onClick={() => selectStore(s)} disabled={loading}
               className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100 disabled:opacity-50"
