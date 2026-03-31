@@ -153,12 +153,19 @@ function NidinPicker({ onSelectStore, onCancel }) {
     fetch('/api/nidin?path=brands')
       .then((r) => r.json())
       .then((data) => {
+        const DRINK_TAGS = ['飲料', '手搖', '茶飲', '咖啡', '果汁', '奶茶', '飲品', '冰品'];
         const seen = new Set();
-        const deduped = (data.brands || []).filter((b) => {
-          const key = b.brand_code || b.id;
-          if (seen.has(key)) return false;
-          seen.add(key); return true;
-        });
+        const deduped = (data.brands || [])
+          .filter((b) => {
+            // 過濾只保留飲料相關品牌
+            const tags = (b.meal_tag_info || []).map((t) => t.name).join('');
+            return DRINK_TAGS.some((t) => tags.includes(t) || (b.name || '').includes(t));
+          })
+          .filter((b) => {
+            const key = b.brand_code || b.id;
+            if (seen.has(key)) return false;
+            seen.add(key); return true;
+          });
         setAllBrands(deduped);
       })
       .catch(() => {});
