@@ -12,7 +12,7 @@ import { useAuth } from './hooks/useAuth';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('order');
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -20,7 +20,9 @@ export default function App() {
   }, [theme]);
 
   function toggleTheme() {
+    document.body.classList.add('theme-transitioning');
     setTheme((t) => t === 'dark' ? 'light' : 'dark');
+    setTimeout(() => document.body.classList.remove('theme-transitioning'), 600);
   }
   const { role, isAdmin, isLeader, login, logout, saveUserName, getUserName } = useAuth();
 
