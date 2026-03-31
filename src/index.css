@@ -87,12 +87,12 @@ body {
   overflow: auto;
 }
 
-/* 主題切換過渡動畫 */
+/* 主題切換過渡動畫（只對背景和邊框，文字立即變色） */
 body.theme-transitioning,
 body.theme-transitioning *,
 body.theme-transitioning *::before,
 body.theme-transitioning *::after {
-  transition: background-color 0.5s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, background 0.5s ease !important;
+  transition: background-color 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.4s ease !important;
 }
 
 body::before {
