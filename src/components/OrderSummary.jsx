@@ -222,24 +222,26 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
               </div>
 
               {/* 訂單預覽 */}
-              <div className="bg-white/5 rounded-2xl px-4 py-3 max-h-52 overflow-y-auto">
-                <pre className="text-sm text-white/80 whitespace-pre-wrap font-sans">{orderText}</pre>
+              <div className="rounded-2xl px-4 py-3 max-h-52 overflow-y-auto" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid var(--border)' }}>
+                <pre className="text-sm whitespace-pre-wrap font-sans" style={{ color: 'var(--text)' }}>{orderText}</pre>
               </div>
 
-              <p className="text-sm text-white/50 text-center">結單後成員將無法繼續點餐</p>
+              <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>結單後成員將無法繼續點餐</p>
 
               <div className="space-y-2">
                 <motion.button
                   onClick={handleCloseAndLine}
                   disabled={orders.length === 0}
-                  className="w-full bg-green-500/100 text-white py-3 rounded-2xl font-semibold text-base hover:bg-green-600 disabled:opacity-40 flex items-center justify-center gap-2"
+                  className="w-full text-white py-3 rounded-2xl font-semibold text-base disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
+                  style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', boxShadow: '0 4px 16px rgba(34,197,94,0.3)' }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  <span>💬</span> 結單並傳送到 LINE
+                  💬 結單並傳送到 LINE
                 </motion.button>
                 <motion.button
                   onClick={handleCloseOnly}
-                  className="w-full bg-white/5 text-white/80 py-3 rounded-2xl font-semibold text-base hover:bg-white/10"
+                  className="w-full py-3 rounded-2xl font-semibold text-base cursor-pointer"
+                  style={{ background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
                   whileTap={{ scale: 0.97 }}
                 >
                   僅結單
