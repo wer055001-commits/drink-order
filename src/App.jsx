@@ -48,6 +48,8 @@ export default function App() {
     setAnnouncement,
     siteTitle,
     setSiteTitle,
+    leaderCode,
+    setLeaderCode,
     addShop,
     updateShop,
     removeShop,
@@ -73,7 +75,7 @@ export default function App() {
     setActiveTab('order');
   }
 
-  if (!role) return <RoleSelect onSelect={handleLogin} siteTitle={siteTitle} theme={theme} onToggleTheme={toggleTheme} />;
+  if (!role) return <RoleSelect onSelect={handleLogin} siteTitle={siteTitle} theme={theme} onToggleTheme={toggleTheme} leaderCode={leaderCode} />;
 
   if (loading) {
     return (
@@ -183,6 +185,8 @@ export default function App() {
                 onSetAnnouncement={setAnnouncement}
                 siteTitle={siteTitle}
                 onSetSiteTitle={setSiteTitle}
+                leaderCode={leaderCode}
+                onSetLeaderCode={setLeaderCode}
               />
             </motion.div>
           )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ClipboardList, Coffee, Settings, ArrowRight, Sun, Moon } from 'lucide-react';
 
 const ROLES = [
@@ -21,14 +21,36 @@ const ROLES = [
   },
 ];
 
-export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme }) {
+export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme, leaderCode }) {
   const [remember, setRemember] = useState(false);
   const [logoTaps, setLogoTaps] = useState(0);
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [codeInput, setCodeInput] = useState('');
+  const [codeError, setCodeError] = useState(false);
 
   function handleLogoTap() {
     const next = logoTaps + 1;
     setLogoTaps(next);
     if (next >= 5) { onSelect('admin', remember); setLogoTaps(0); }
+  }
+
+  function handleRoleClick(key) {
+    if (key === 'leader') {
+      setShowCodeInput(true);
+      setCodeInput('');
+      setCodeError(false);
+    } else {
+      onSelect(key, remember);
+    }
+  }
+
+  function handleCodeSubmit() {
+    if (codeInput === leaderCode) {
+      onSelect('leader', remember);
+    } else {
+      setCodeError(true);
+      setTimeout(() => setCodeError(false), 1500);
+    }
   }
 
   return (
@@ -82,7 +104,7 @@ export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme }
             return (
               <motion.button
                 key={r.key}
-                onClick={() => onSelect(r.key, remember)}
+                onClick={() => handleRoleClick(r.key)}
                 className="w-full glow-card p-5 text-left cursor-pointer group"
                 initial={{ opacity: 0, y: 25 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -108,6 +130,49 @@ export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme }
             );
           })}
         </div>
+
+        {/* 團主驗證碼輸入 */}
+        <AnimatePresence>
+          {showCodeInput && (
+            <motion.div
+              className="glass-card p-5 mt-4 space-y-3"
+              initial={{ opacity: 0, y: 10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: 10, height: 0 }}
+            >
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>請輸入團主驗證碼</p>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCodeSubmit()}
+                  placeholder="4 位數驗證碼"
+                  className="dark-input flex-1"
+                  autoFocus
+                />
+                <button
+                  onClick={handleCodeSubmit}
+                  className="btn-gradient px-5 py-2.5 text-sm"
+                >確認</button>
+              </div>
+              {codeError && (
+                <motion.p
+                  className="text-sm text-red-400 font-medium"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >驗證碼錯誤，請重試</motion.p>
+              )}
+              <button
+                onClick={() => setShowCodeInput(false)}
+                className="text-sm cursor-pointer w-full text-center"
+                style={{ color: 'var(--text-muted)' }}
+              >取消</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 記住我 */}
         <motion.label

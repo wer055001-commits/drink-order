@@ -238,9 +238,10 @@ function NidinImportModal({ onImport, onClose }) {
 }
 
 // ── 主元件 ──────────────────────────────────────────────────────────
-export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveShop, onAddMenuItem, onRemoveMenuItem, onResetShops, onImportMenuItems, announcement, onSetAnnouncement, siteTitle, onSetSiteTitle }) {
+export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveShop, onAddMenuItem, onRemoveMenuItem, onResetShops, onImportMenuItems, announcement, onSetAnnouncement, siteTitle, onSetSiteTitle, leaderCode, onSetLeaderCode }) {
   const [selectedShopId, setSelectedShopId] = useState(shops[0]?.id || '');
   const [announcementInput, setAnnouncementInput] = useState(announcement || '');
+  const [leaderCodeInput, setLeaderCodeInput] = useState(leaderCode || '1212');
   const [siteTitleInput, setSiteTitleInput] = useState(siteTitle || '');
   const [newShopName, setNewShopName] = useState('');
   const [showAddShop, setShowAddShop] = useState(false);
@@ -370,6 +371,27 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
           >儲存</button>
         </div>
         <p className="text-xs text-white/40 mt-1.5">目前顯示：{siteTitle || '麻將飲料團'}</p>
+      </div>
+
+      {/* 團主驗證碼 */}
+      <div className="glass-card p-4">
+        <h3 className="font-semibold text-white/80 mb-3">🔒 團主驗證碼</h3>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="輸入 4~6 位數驗證碼"
+            value={leaderCodeInput}
+            onChange={(e) => setLeaderCodeInput(e.target.value)}
+            className="flex-1 border border-white/10 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+          />
+          <button
+            onClick={() => onSetLeaderCode(leaderCodeInput)}
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+          >儲存</button>
+        </div>
+        <p className="text-xs text-white/40 mt-1.5">目前驗證碼：{leaderCode || '1212'}</p>
       </div>
 
       {/* 系統公告 */}
