@@ -285,7 +285,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
       </AnimatePresence>
 
       {/* 統計 */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+      <div className="clay-card p-4">
         <div className="flex justify-between items-center">
           <span className="font-semibold text-gray-700">共 {orders.length} 杯</span>
           <div className="flex items-center gap-3">
@@ -308,7 +308,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
       </div>
 
       {displayOrders.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+        <div className="clay-card p-4">
           <h3 className="font-semibold text-gray-700 mb-3">飲料統計</h3>
           <div className="space-y-1.5">
             {Object.entries(summary).map(([key, count]) => (
@@ -331,7 +331,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
             {displayOrders.map((order, i) => (
               <motion.div
                 key={order.id}
-                className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4"
+                className="clay-card p-4"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -385,7 +385,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
 
       {/* 每人小計（團主專用） */}
       {isLeader && orders.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+        <div className="clay-card p-4">
           <h3 className="font-semibold text-gray-700 mb-3">💰 每人小計</h3>
           <div className="space-y-2">
             {Object.entries(
@@ -430,7 +430,7 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory, onMar
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+    <div className="clay-card p-4">
       <h3 className="font-semibold text-gray-700 mb-3">歷史訂單</h3>
       <div className="space-y-2">
         {pastSessions.map((s) => {
@@ -520,7 +520,7 @@ function UserHistorySection({ pastSessions, getSessionOrders, myName }) {
   if (mySessions.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+    <div className="clay-card p-4">
       <h3 className="font-semibold text-gray-700 mb-3">📄 我的歷史訂單</h3>
       <div className="space-y-2">
         {mySessions.map((s) => {

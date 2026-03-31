@@ -354,7 +354,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
   return (
     <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
       {/* 系統標題 */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+      <div className="clay-card p-4">
         <h3 className="font-semibold text-gray-700 mb-3">✏️ 系統標題</h3>
         <div className="flex gap-2">
           <input
@@ -373,7 +373,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
       </div>
 
       {/* 系統公告 */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+      <div className="clay-card p-4">
         <h3 className="font-semibold text-gray-700 mb-3">📢 系統公告</h3>
         <div className="flex gap-2">
           <input
@@ -397,7 +397,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
       </div>
 
       {/* 店家切換 */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+      <div className="clay-card p-4">
         <div className="flex items-center gap-2 mb-3">
           <label className="font-semibold text-gray-700 flex-1">店家</label>
           <button
@@ -491,7 +491,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
 
       {/* 店家電話 */}
       {shop && (
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+        <div className="clay-card p-4">
           <h3 className="font-semibold text-gray-700 mb-3">📞 {shop.name} 電話</h3>
           <div className="flex gap-2">
             <input
@@ -516,7 +516,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
 
       {/* 品項列表 */}
       {shop && (
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+        <div className="clay-card p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-700">{shop.name} 菜單</h3>
             <div className="flex gap-2">
@@ -595,7 +595,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
 
       {/* Excel 匯入區塊 */}
       {shop && (
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4">
+        <div className="clay-card p-4">
           <h3 className="font-semibold text-gray-700 mb-3">匯入 Excel 菜單</h3>
 
           <div className="flex gap-2 mb-3">

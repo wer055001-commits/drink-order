@@ -24,7 +24,14 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
   const items = NAV_ITEMS[role] || NAV_ITEMS.user;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40"
+      style={{
+        background: 'rgba(255,255,255,0.92)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.04), 0 -1px 0 rgba(0,0,0,0.03)',
+      }}
+    >
       <div className="max-w-2xl mx-auto flex">
         {items.map((item) => {
           const isActive = activeTab === item.key;
@@ -38,31 +45,41 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute top-0 h-[3px] w-10 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full"
+                  className="absolute top-0 h-[3px] w-10 rounded-full"
+                  style={{ background: 'linear-gradient(90deg, #fb923c, #f97316)' }}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
               <div className="relative">
                 <motion.div
-                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  animate={isActive ? { scale: 1.15, y: -2 } : { scale: 1, y: 0 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 >
-                  <Icon
-                    className={`w-[22px] h-[22px] mb-0.5 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-400'}`}
-                    strokeWidth={isActive ? 2.5 : 1.8}
-                  />
+                  {isActive ? (
+                    <div
+                      className="w-9 h-9 rounded-xl flex items-center justify-center"
+                      style={{
+                        background: 'linear-gradient(135deg, #fb923c, #f97316)',
+                        boxShadow: '3px 3px 8px rgba(249,115,22,0.25)',
+                      }}
+                    >
+                      <Icon className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
+                    </div>
+                  ) : (
+                    <Icon className="w-[22px] h-[22px] text-gray-400" strokeWidth={1.8} />
+                  )}
                 </motion.div>
                 {item.key === 'summary' && ordersCount > 0 && (role === 'leader' || role === 'admin') && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1.5 -right-2.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1"
+                    className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1"
                   >
                     {ordersCount > 9 ? '9+' : ordersCount}
                   </motion.span>
                 )}
               </div>
-              <span className={`text-[11px] font-medium mt-0.5 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-400'}`}>
+              <span className={`text-[10px] font-semibold mt-1 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-400'}`}>
                 {item.label}
               </span>
             </button>

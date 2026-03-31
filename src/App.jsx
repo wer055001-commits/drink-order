@@ -85,7 +85,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50/60 via-white to-amber-50/40">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <Header
         activeSessions={activeSessions}
         ordersCount={totalActiveOrdersCount}

@@ -28,7 +28,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
 
   return (
     <motion.div
-      className={`bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4 space-y-3 ${isExpired ? 'opacity-60' : ''}`}
+      className={`clay-card p-4 space-y-3 ${isExpired ? 'opacity-60' : ''}`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}
