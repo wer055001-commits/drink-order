@@ -20,7 +20,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
   }, [showMenu]);
 
   return (
-    <header style={{ background: 'rgba(15,15,26,0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    <header style={{ background: 'var(--header-bg)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)' }}>
       <div className="max-w-2xl mx-auto px-4 py-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -31,9 +31,9 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
               <Coffee className="w-[18px] h-[18px] text-white" />
             </div>
             <div>
-              <h1 className="text-base font-extrabold text-white tracking-wide leading-tight">{siteTitle || '麻將飲料團'}</h1>
+              <h1 className="text-base font-extrabold tracking-wide leading-tight" style={{ color: 'var(--text)' }}>{siteTitle || '麻將飲料團'}</h1>
               {activeSessions.length > 0 && (
-                <p className="text-[11px] text-white/35 mt-0.5 font-medium">{activeSessions.length} 個團購 · {ordersCount} 筆訂單</p>
+                <p className="text-[11px] mt-0.5 font-medium" style={{ color: 'var(--text-muted)' }}>{activeSessions.length} 個團購 · {ordersCount} 筆訂單</p>
               )}
             </div>
           </div>
@@ -43,7 +43,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
             <motion.button
               onClick={onToggleTheme}
               className="w-9 h-9 rounded-full flex items-center justify-center cursor-pointer"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
               whileTap={{ scale: 0.9 }}
               title={theme === 'dark' ? '切換淺色' : '切換深色'}
             >
@@ -54,7 +54,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
             <motion.button
               onClick={() => setShowMenu((v) => !v)}
               className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
               whileTap={{ scale: 0.95 }}
             >
               {ROLE_LABELS[role]}
@@ -69,14 +69,14 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
                   exit={{ opacity: 0, scale: 0.9, y: -8 }}
                   transition={{ duration: 0.15 }}
                 >
-                  <p className="text-[10px] text-white/30 px-4 pb-2 font-bold uppercase tracking-widest">切換身分</p>
+                  <p className="text-[10px] px-4 pb-2 font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>切換身分</p>
                   {SWITCH_OPTIONS.filter((o) => o.key !== role).map((o) => {
                     const Icon = o.icon;
                     return (
                       <button key={o.key} onClick={() => { onSwitchRole(o.key); setShowMenu(false); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left cursor-pointer">
-                        <Icon className="w-4 h-4 text-white/40" />
-                        <span className="text-sm font-semibold text-white/80">{o.label}</span>
+                        className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left cursor-pointer" style={{ ':hover': {} }}>
+                        <Icon className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                        <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{o.label}</span>
                       </button>
                     );
                   })}

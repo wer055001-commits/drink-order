@@ -73,7 +73,7 @@ export default function App() {
     setActiveTab('order');
   }
 
-  if (!role) return <RoleSelect onSelect={handleLogin} siteTitle={siteTitle} />;
+  if (!role) return <RoleSelect onSelect={handleLogin} siteTitle={siteTitle} theme={theme} onToggleTheme={toggleTheme} />;
 
   if (loading) {
     return (

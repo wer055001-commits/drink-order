@@ -28,10 +28,10 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
       <nav
         className="max-w-md mx-auto flex rounded-2xl overflow-hidden"
         style={{
-          background: 'rgba(20,20,35,0.85)',
+          background: 'var(--nav-bg)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
         }}
       >
         {items.map((item) => {
@@ -54,7 +54,7 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
                     </div>
                   ) : (
                     <div className="w-10 h-10 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-white/35" strokeWidth={1.8} />
+                      <Icon className="w-5 h-5 text-gray-400" strokeWidth={1.8} />
                     </div>
                   )}
                 </motion.div>
@@ -65,7 +65,7 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
                   >{ordersCount > 9 ? '9+' : ordersCount}</motion.span>
                 )}
               </div>
-              <span className={`text-[10px] font-semibold mt-1 transition-colors ${isActive ? 'text-white' : 'text-white/30'}`}>
+              <span className={`text-[10px] font-semibold mt-1 transition-colors ${isActive ? 'text-white' : 'text-gray-400'}`}>
                 {item.label}
               </span>
             </button>
