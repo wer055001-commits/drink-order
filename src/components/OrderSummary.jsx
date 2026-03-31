@@ -217,12 +217,12 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-lg">結單確認</h3>
-                <button onClick={() => setShowCloseModal(false)} className="text-white/40 hover:text-white/60 text-2xl leading-none">×</button>
+                <h3 className="font-bold text-lg" style={{ color: 'var(--text)' }}>結單確認</h3>
+                <button onClick={() => setShowCloseModal(false)} className="text-2xl leading-none cursor-pointer" style={{ color: 'var(--text-muted)' }}>×</button>
               </div>
 
               {/* 訂單預覽 */}
-              <div className="rounded-2xl px-4 py-3 max-h-52 overflow-y-auto" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <div className="rounded-2xl px-4 py-3 max-h-52 overflow-y-auto" style={{ background: 'var(--input-bg)', border: '1px solid var(--border)' }}>
                 {orderText ? (
                   <pre className="text-sm whitespace-pre-wrap font-sans" style={{ color: 'var(--text)' }}>{orderText}</pre>
                 ) : (
@@ -230,22 +230,22 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
                 )}
               </div>
 
-              <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>結單後成員將無法繼續點餐</p>
+              <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>結單後成員將無法繼續點餐</p>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <motion.button
                   onClick={handleCloseAndLine}
                   disabled={orders.length === 0}
-                  className="w-full text-white py-3 rounded-2xl font-semibold text-base disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
-                  style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', boxShadow: '0 4px 16px rgba(34,197,94,0.3)' }}
+                  className="w-full text-white py-3.5 rounded-2xl font-bold text-base disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
+                  style={{ background: 'linear-gradient(135deg, #4ade80, #22c55e)', boxShadow: '0 4px 20px rgba(34,197,94,0.35)' }}
                   whileTap={{ scale: 0.97 }}
                 >
                   💬 結單並傳送到 LINE
                 </motion.button>
                 <motion.button
                   onClick={handleCloseOnly}
-                  className="w-full py-3 rounded-2xl font-semibold text-base cursor-pointer"
-                  style={{ background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                  className="w-full py-3.5 rounded-2xl font-bold text-base cursor-pointer"
+                  style={{ background: 'var(--input-bg)', color: 'var(--text)', border: '2px solid var(--border)' }}
                   whileTap={{ scale: 0.97 }}
                 >
                   僅結單
