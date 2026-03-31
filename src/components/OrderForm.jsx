@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCountdown } from '../hooks/useCountdown';
 import { parseNidinMenu, fuzzyScore, getLocation, formatDistance, calcDistance } from '../lib/nidinHelpers';
+import { Clock, Plus, Users, Send, Store, Search, MapPin, ChevronLeft, ShoppingBag, Check } from 'lucide-react';
 
 const DURATION_OPTIONS = [15, 20, 30, 45, 60];
 
@@ -27,10 +28,10 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
 
   return (
     <motion.div
-      className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3 ${isExpired ? 'opacity-70' : ''}`}
+      className={`bg-white rounded-2xl shadow-sm shadow-gray-200/60 border border-gray-100/80 p-4 space-y-3 ${isExpired ? 'opacity-60' : ''}`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+      whileHover={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}
     >
       <div className="flex items-start justify-between">
         <div>
@@ -61,22 +62,22 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
         <div className="flex gap-2 flex-wrap">
           {!isExpired && (
             <>
-              <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs border border-blue-300 text-blue-500 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors" whileTap={{ scale: 0.95 }}>+15 分鐘</motion.button>
-              <motion.button onClick={() => onProxyOrder(session.id)} className="text-xs border border-purple-300 text-purple-500 px-3 py-1 rounded-lg hover:bg-purple-50 transition-colors" whileTap={{ scale: 0.95 }}>👥 代點</motion.button>
+              <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs font-medium border border-blue-200 text-blue-500 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Clock className="w-3 h-3" /> +15 分鐘</motion.button>
+              <motion.button onClick={() => onProxyOrder(session.id)} className="text-xs font-medium border border-purple-200 text-purple-500 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Users className="w-3 h-3" /> 代點</motion.button>
               {secondsLeft <= 300 && (
                 <motion.button
                   onClick={() => {
                     const text = `⏰ 飲料快截止了！剩 ${display}，還沒點的快來！\n${window.location.href}`;
                     window.open(`https://line.me/R/share?text=${encodeURIComponent(text)}`, '_blank');
                   }}
-                  className="text-xs border border-orange-300 text-orange-500 px-3 py-1 rounded-lg hover:bg-orange-50 transition-colors animate-pulse"
+                  className="text-xs font-medium border border-orange-200 text-orange-500 px-3 py-1.5 rounded-xl hover:bg-orange-50 transition-colors animate-pulse cursor-pointer flex items-center gap-1"
                   whileTap={{ scale: 0.95 }}
-                >📣 提醒成員</motion.button>
+                ><Send className="w-3 h-3" /> 提醒成員</motion.button>
               )}
             </>
           )}
-          <motion.button onClick={() => setConfirmClose(true)} className="text-xs border border-gray-300 text-gray-500 px-3 py-1 rounded-lg hover:bg-gray-50 transition-colors" whileTap={{ scale: 0.95 }}>關閉</motion.button>
-          <motion.button onClick={() => setConfirmReset(true)} className="text-xs border border-red-200 text-red-400 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors" whileTap={{ scale: 0.95 }}>重置</motion.button>
+          <motion.button onClick={() => setConfirmClose(true)} className="text-xs font-medium border border-gray-200 text-gray-500 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>關閉</motion.button>
+          <motion.button onClick={() => setConfirmReset(true)} className="text-xs font-medium border border-red-100 text-red-400 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>重置</motion.button>
         </div>
       )}
 

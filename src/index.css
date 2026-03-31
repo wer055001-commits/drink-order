@@ -1,17 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   margin: 0;
-  font-family: 'Noto Sans TC', system-ui, sans-serif;
-  background-color: #fdf8f3;
+  font-family: 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+  background-color: #fefcf9;
   background-image:
-    radial-gradient(circle at 15% 15%, rgba(251, 146, 60, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.10) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(254, 215, 170, 0.15) 0%, transparent 60%),
-    radial-gradient(#f97316 0.4px, transparent 0.4px);
-  background-size: auto, auto, auto, 18px 18px;
+    radial-gradient(circle at 10% 0%, rgba(251, 146, 60, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 90% 100%, rgba(245, 158, 11, 0.06) 0%, transparent 50%);
   background-attachment: fixed;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 999px; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f97316;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
 }
