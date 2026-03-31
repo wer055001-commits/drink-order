@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Coffee } from 'lucide-react';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import OrderForm from './components/OrderForm';
@@ -85,8 +86,8 @@ export default function App() {
             className="text-5xl mb-4"
             animate={{ y: [0, -12, 0] }}
             transition={{ repeat: Infinity, duration: 1 }}
-          >🧋</motion.div>
-          <p className="text-gray-500 font-medium">資料載入中...</p>
+          ><Coffee className="w-10 h-10 mx-auto" style={{ color: 'var(--text-muted)' }} /></motion.div>
+          <p className="font-medium" style={{ color: 'var(--text-muted)' }}>資料載入中...</p>
         </div>
       </div>
     );
@@ -113,7 +114,8 @@ export default function App() {
 
       {announcement && (
         <motion.div
-          className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center text-sm text-amber-800 font-medium"
+          className="border-b px-4 py-2.5 text-center text-sm font-medium"
+          style={{ background: 'rgba(245,158,11,0.1)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
         >

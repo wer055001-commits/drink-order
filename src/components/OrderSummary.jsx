@@ -8,17 +8,12 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
   const [size, setSize] = useState(order.size);
   const [sugar, setSugar] = useState(order.sugar);
   const [ice, setIce] = useState(order.ice);
-  const [toppings, setToppings] = useState(order.toppings || []);
   const [note, setNote] = useState(order.note || '');
 
   function calcPrice() {
     if (!selectedItem) return order.price;
     const sizeObj = selectedItem.sizes.find((s) => s.label === size);
     return selectedItem.price + (sizeObj?.add || 0);
-  }
-
-  function toggleTopping(t) {
-    setToppings((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
   }
 
   function handleSave() {
@@ -37,7 +32,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <motion.div
-        className="bg-white/5 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-4"
+        className="glass-card rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 space-y-4"
         initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
         onClick={(e) => e.stopPropagation()}
@@ -216,7 +211,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
             onClick={(e) => { if (e.target === e.currentTarget) setShowCloseModal(false); }}
           >
             <motion.div
-              className="bg-white/5 rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-6 space-y-4"
+              className="glass-card rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-6 space-y-4"
               initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
               onClick={(e) => e.stopPropagation()}

@@ -74,7 +74,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
                     const Icon = o.icon;
                     return (
                       <button key={o.key} onClick={() => { onSwitchRole(o.key); setShowMenu(false); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left cursor-pointer" style={{ ':hover': {} }}>
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left cursor-pointer">
                         <Icon className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                         <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{o.label}</span>
                       </button>

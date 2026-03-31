@@ -125,7 +125,7 @@ function NidinImportModal({ onImport, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <motion.div
-        className="bg-white/5 rounded-t-3xl sm:rounded-3xl w-full max-w-lg flex flex-col"
+        className="glass-card rounded-t-3xl sm:rounded-3xl w-full max-w-lg flex flex-col"
         style={{ maxHeight: '82vh' }}
         initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
@@ -264,7 +264,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
   const shop = shops.find((s) => s.id === selectedShopId);
 
   // 切換店家時同步電話欄
-  useState(() => { setPhoneInput(shop?.phone || ''); });
+  useEffect(() => { setPhoneInput(shop?.phone || ''); }, [shop]);
   function handleSelectShop(id) {
     setSelectedShopId(id);
     setPhoneInput(shops.find((s) => s.id === id)?.phone || '');

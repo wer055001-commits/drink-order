@@ -122,7 +122,7 @@ export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme, 
                     <div className="font-bold text-lg text-[color:var(--text)]">{r.title}</div>
                     <p className="text-sm text-[color:var(--text)]/40 mt-0.5">{r.desc}</p>
                   </div>
-                  <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center transition-colors" style={{ background: 'var(--surface)' }}>
                     <ArrowRight className="w-4 h-4 text-[color:var(--text)]/40 group-hover:text-[color:var(--text)]/70 transition-colors" />
                   </div>
                 </div>

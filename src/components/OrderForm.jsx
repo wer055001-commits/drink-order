@@ -63,7 +63,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
           {!isExpired && (
             <>
               <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs font-medium border border-blue-500/20 text-blue-500 px-3 py-1.5 rounded-xl hover:bg-blue-500/100/10 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Clock className="w-3 h-3" /> +15 分鐘</motion.button>
-              <motion.button onClick={() => onProxyOrder(session.id)} className="text-xs font-medium border border-purple-200 text-purple-500 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Users className="w-3 h-3" /> 代點</motion.button>
+              <motion.button onClick={() => onProxyOrder(session.id)} className="text-xs font-medium border border-purple-200 text-purple-500 px-3 py-1.5 rounded-xl hover:bg-purple-500/10 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Users className="w-3 h-3" /> 代點</motion.button>
               {secondsLeft <= 300 && (
                 <motion.button
                   onClick={() => {
@@ -545,7 +545,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
       </div>
 
       {isProxy && (
-        <div className="bg-purple-50 border border-purple-300 rounded-xl px-4 py-2.5 mb-3 text-sm text-purple-700 font-medium">
+        <div className="rounded-xl px-4 py-2.5 mb-3 text-sm font-medium" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)', color: 'var(--text-secondary)' }}>
           👥 代點模式 — 請填入對方姓名
         </div>
       )}
