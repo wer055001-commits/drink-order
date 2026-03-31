@@ -161,11 +161,11 @@ function NidinImportModal({ onImport, onClose }) {
                   )}
                   {suggestions.map((b) => (
                     <button key={b.brand_code || b.id} onClick={() => selectBrand(b)}
-                      className="w-full text-left flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
+                      className="w-full text-left flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-orange-500/100/10 transition-colors"
                     >
                       {b.image
                         ? <img src={b.image} className="w-10 h-10 rounded-lg object-cover shrink-0" alt="" />
-                        : <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🍱</div>
+                        : <div className="w-10 h-10 rounded-lg bg-orange-500/15 flex items-center justify-center text-lg shrink-0">🍱</div>
                       }
                       <div className="font-medium text-white">{b.name}</div>
                     </button>
@@ -183,7 +183,7 @@ function NidinImportModal({ onImport, onClose }) {
                 <p className="text-center text-white/40 py-6 text-sm">此品牌目前無可選分店</p>
               ) : stores.map((s) => (
                 <button key={s.id} onClick={() => selectStore(s)}
-                  className="w-full text-left px-3 py-3 rounded-xl hover:bg-orange-50 transition-colors"
+                  className="w-full text-left px-3 py-3 rounded-xl hover:bg-orange-500/100/10 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="font-medium text-white">{s.name}</div>
@@ -201,9 +201,9 @@ function NidinImportModal({ onImport, onClose }) {
             <div className="space-y-3">
               {loading ? <p className="text-center text-white/40 py-6">載入菜單中...</p> : (
                 <>
-                  <div className="bg-orange-50 rounded-xl px-4 py-3">
-                    <p className="font-semibold text-orange-800">{selectedBrand?.name} {selectedStore?.name}</p>
-                    <p className="text-sm text-orange-600 mt-0.5">共 {menuItems.length} 個品項</p>
+                  <div className="bg-orange-500/10 rounded-xl px-4 py-3">
+                    <p className="font-semibold text-orange-300">{selectedBrand?.name} {selectedStore?.name}</p>
+                    <p className="text-sm text-orange-400 mt-0.5">共 {menuItems.length} 個品項</p>
                     {selectedStore?.tel && <p className="text-xs text-orange-500 mt-0.5">📞 {selectedStore.tel}</p>}
                   </div>
                   <div className="space-y-1 max-h-52 overflow-y-auto">
@@ -227,7 +227,7 @@ function NidinImportModal({ onImport, onClose }) {
           <div className="px-6 pb-6 pt-2 shrink-0 border-t">
             <motion.button
               onClick={() => onImport({ shopName: `${selectedBrand.name} ${selectedStore.name}`, phone: selectedStore.tel || '', items: menuItems })}
-              className="w-full bg-orange-500 text-white py-3.5 rounded-2xl font-semibold text-base hover:bg-orange-600"
+              className="w-full bg-orange-500/100 text-white py-3.5 rounded-2xl font-semibold text-base hover:bg-orange-600"
               whileTap={{ scale: 0.97 }}
             >新增店家並匯入菜單</motion.button>
           </div>
@@ -366,7 +366,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
           />
           <button
             onClick={() => onSetSiteTitle(siteTitleInput)}
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+            className="bg-orange-500/100 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
           >儲存</button>
         </div>
         <p className="text-xs text-white/40 mt-1.5">目前顯示：{siteTitle || '麻將飲料團'}</p>
@@ -385,11 +385,11 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
           />
           <button
             onClick={() => onSetAnnouncement(announcementInput)}
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+            className="bg-orange-500/100 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
           >儲存</button>
         </div>
         {announcement && (
-          <div className="mt-2 bg-amber-50 rounded-lg px-3 py-2 text-sm text-amber-700 flex justify-between items-center">
+          <div className="mt-2 bg-amber-500/10 rounded-lg px-3 py-2 text-sm text-amber-300 flex justify-between items-center">
             <span>目前：{announcement}</span>
             <button onClick={() => { onSetAnnouncement(''); setAnnouncementInput(''); }} className="text-white/40 hover:text-red-400 ml-2 text-lg leading-none">×</button>
           </div>
@@ -402,13 +402,13 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
           <label className="font-semibold text-white/80 flex-1">店家</label>
           <button
             onClick={() => setShowNidinModal(true)}
-            className="text-sm text-green-600 font-medium hover:text-green-700 flex items-center gap-1"
+            className="text-sm text-green-400 font-medium hover:text-green-300 flex items-center gap-1"
           >
             🔗 從你訂匯入
           </button>
           <button
             onClick={() => setShowAddShop(!showAddShop)}
-            className="text-sm text-orange-500 font-medium hover:text-orange-600"
+            className="text-sm text-orange-500 font-medium hover:text-orange-400"
           >
             + 手動新增
           </button>
@@ -431,7 +431,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
             />
             <button
               onClick={handleAddShop}
-              className="bg-orange-500 text-white px-3 py-2 rounded-lg text-sm font-medium"
+              className="bg-orange-500/100 text-white px-3 py-2 rounded-lg text-sm font-medium"
             >
               新增
             </button>
@@ -445,8 +445,8 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
                 onClick={() => handleSelectShop(s.id)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   selectedShopId === s.id
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-gray-100 text-white/80 hover:bg-gray-200'
+                    ? 'bg-orange-500/100 text-white'
+                    : 'bg-white/5 text-white/80 hover:bg-white/10'
                 }`}
               >
                 {s.name}
@@ -470,18 +470,18 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
 
       {/* 確認重設 */}
       {showResetConfirm && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <p className="text-red-700 font-medium mb-3">確定要將所有菜單重設回預設值嗎？</p>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+          <p className="text-red-300 font-medium mb-3">確定要將所有菜單重設回預設值嗎？</p>
           <div className="flex gap-2">
             <button
               onClick={() => { onResetShops(); setSelectedShopId(shops[0]?.id || ''); setShowResetConfirm(false); }}
-              className="flex-1 bg-red-500 text-white py-2 rounded-lg font-medium"
+              className="flex-1 bg-red-500/100 text-white py-2 rounded-lg font-medium"
             >
               確定重設
             </button>
             <button
               onClick={() => setShowResetConfirm(false)}
-              className="flex-1 bg-gray-100 text-white/80 py-2 rounded-lg font-medium"
+              className="flex-1 bg-white/5 text-white/80 py-2 rounded-lg font-medium"
             >
               取消
             </button>
@@ -503,7 +503,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
             />
             <button
               onClick={() => onUpdateShop(shop.id, { phone: phoneInput.trim() })}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+              className="bg-orange-500/100 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
             >儲存</button>
           </div>
           {shop.phone && (
@@ -522,7 +522,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
             <div className="flex gap-2">
               <button
                 onClick={() => setShowAddItem(!showAddItem)}
-                className="text-sm text-orange-500 font-medium hover:text-orange-600"
+                className="text-sm text-orange-500 font-medium hover:text-orange-400"
               >
                 + 手動新增
               </button>
@@ -530,7 +530,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
           </div>
 
           {showAddItem && (
-            <div className="bg-orange-50 rounded-lg p-3 mb-4 space-y-2">
+            <div className="bg-orange-500/10 rounded-lg p-3 mb-4 space-y-2">
               <input
                 type="text"
                 placeholder="飲料名稱"
@@ -561,8 +561,8 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={handleAddItem} className="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm font-medium">新增</button>
-                <button onClick={() => setShowAddItem(false)} className="flex-1 bg-gray-100 text-white/80 py-2 rounded-lg text-sm">取消</button>
+                <button onClick={handleAddItem} className="flex-1 bg-orange-500/100 text-white py-2 rounded-lg text-sm font-medium">新增</button>
+                <button onClick={() => setShowAddItem(false)} className="flex-1 bg-white/5 text-white/80 py-2 rounded-lg text-sm">取消</button>
               </div>
             </div>
           )}
@@ -601,13 +601,13 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
           <div className="flex gap-2 mb-3">
             <button
               onClick={downloadTemplate}
-              className="flex-1 border border-orange-400 text-orange-500 py-2.5 rounded-lg text-sm font-medium hover:bg-orange-50 transition-colors"
+              className="flex-1 border border-orange-400 text-orange-500 py-2.5 rounded-lg text-sm font-medium hover:bg-orange-500/100/10 transition-colors"
             >
               下載範本
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 bg-orange-500 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+              className="flex-1 bg-orange-500/100 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
             >
               選擇 Excel 檔案
             </button>
@@ -623,11 +623,11 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
           <p className="text-xs text-white/40">格式：第一欄「品項名稱」、第二欄「M價格」、第三欄「L加價」（選填）</p>
 
           {importError && (
-            <div className="mt-3 bg-red-50 text-red-600 text-sm rounded-lg px-3 py-2">{importError}</div>
+            <div className="mt-3 bg-red-500/10 text-red-400 text-sm rounded-lg px-3 py-2">{importError}</div>
           )}
 
           {importPreview && (
-            <div className="mt-3 bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="mt-3 bg-green-500/10 border border-green-500/20 rounded-xl p-4">
               <p className="font-medium text-green-800 mb-2">
                 偵測到 {importPreview.items.length} 筆品項，匯入到「{shop.name}」
               </p>
@@ -648,8 +648,8 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
                   onClick={() => setImportPreview({ ...importPreview, mode: 'append' })}
                   className={`flex-1 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                     importPreview.mode === 'append'
-                      ? 'border-green-500 bg-green-500 text-white'
-                      : 'border-gray-300 text-white/60'
+                      ? 'border-green-500 bg-green-500/100 text-white'
+                      : 'border-white/15 text-white/60'
                   }`}
                 >
                   附加到現有品項
@@ -658,8 +658,8 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
                   onClick={() => setImportPreview({ ...importPreview, mode: 'replace' })}
                   className={`flex-1 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                     importPreview.mode === 'replace'
-                      ? 'border-red-500 bg-red-500 text-white'
-                      : 'border-gray-300 text-white/60'
+                      ? 'border-red-500 bg-red-500/100 text-white'
+                      : 'border-white/15 text-white/60'
                   }`}
                 >
                   取代所有品項
@@ -675,7 +675,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
                 </button>
                 <button
                   onClick={() => setImportPreview(null)}
-                  className="flex-1 bg-gray-100 text-white/80 py-2 rounded-lg font-medium"
+                  className="flex-1 bg-white/5 text-white/80 py-2 rounded-lg font-medium"
                 >
                   取消
                 </button>
@@ -686,7 +686,7 @@ export default function MenuManager({ shops, onAddShop, onUpdateShop, onRemoveSh
       )}
 
       {/* 客製選項說明 */}
-      <div className="bg-gray-50 rounded-xl p-4 border text-sm text-white/50">
+      <div className="bg-white/5 rounded-xl p-4 border text-sm text-white/50">
         <p className="font-medium text-white/60 mb-1">客製選項（全店共用）</p>
         <p>甜度：全糖、少糖、半糖、微糖、無糖</p>
         <p>冰塊：正常冰、少冰、微冰、去冰、熱</p>

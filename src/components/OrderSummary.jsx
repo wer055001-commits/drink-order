@@ -53,7 +53,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
             {shop.menu.map((item) => (
               <button type="button" key={item.id}
                 onClick={() => { setSelectedItem(item); setSize(item.sizes[0]?.label || ''); setToppings([]); }}
-                className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-50' : 'border-white/10 hover:border-orange-300'}`}
+                className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 hover:border-orange-300'}`}
               >
                 <div className="font-medium text-white text-sm">{item.name}</div>
                 <div className="text-xs text-orange-500">NT${item.price}起</div>
@@ -68,7 +68,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
             <div className="flex gap-2">
               {selectedItem.sizes.map((s) => (
                 <button type="button" key={s.label} onClick={() => setSize(s.label)}
-                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${size === s.label ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-white/10 text-white/60'}`}
+                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${size === s.label ? 'border-orange-500 bg-orange-500/10 text-orange-400' : 'border-white/10 text-white/60'}`}
                 >{s.label} {s.add > 0 ? `+${s.add}` : ''}</button>
               ))}
             </div>
@@ -80,7 +80,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
           <div className="flex flex-wrap gap-2">
             {shop.options.sugar.map((s) => (
               <button type="button" key={s} onClick={() => setSugar(s)}
-                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${sugar === s ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-300 text-white/60'}`}
+                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${sugar === s ? 'border-orange-500 bg-orange-500/100 text-white' : 'border-white/15 text-white/60'}`}
               >{s}</button>
             ))}
           </div>
@@ -91,7 +91,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
           <div className="flex flex-wrap gap-2">
             {shop.options.ice.map((ic) => (
               <button type="button" key={ic} onClick={() => setIce(ic)}
-                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${ice === ic ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300 text-white/60'}`}
+                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${ice === ic ? 'border-blue-500 bg-blue-500/100 text-white' : 'border-white/15 text-white/60'}`}
               >{ic}</button>
             ))}
           </div>
@@ -102,7 +102,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
           <div className="flex flex-wrap gap-2">
             {shop.options.toppings.map((t) => (
               <button type="button" key={t} onClick={() => toggleTopping(t)}
-                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500 text-white' : 'border-gray-300 text-white/60'}`}
+                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500/100 text-white' : 'border-white/15 text-white/60'}`}
               >{t}</button>
             ))}
           </div>
@@ -116,7 +116,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
         </div>
 
         {selectedItem && (
-          <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-sm text-orange-800">
+          <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-3 py-2 text-sm text-orange-300">
             {selectedItem.name}（{size}）・{sugar}・{ice}
             {toppings.length > 0 && `・+${toppings.join('、')}`}
             <span className="font-bold ml-2">NT${calcPrice()}</span>
@@ -124,7 +124,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
         )}
 
         <button onClick={handleSave}
-          className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+          className="w-full bg-orange-500/100 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
         >儲存修改</button>
       </motion.div>
     </motion.div>
@@ -198,7 +198,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
             <h2 className="font-bold text-white/80 text-lg">{session.shopName}</h2>
             {shop?.phone && (
               <a href={`tel:${shop.phone}`}
-                className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium hover:bg-green-200"
+                className="flex items-center gap-1 text-xs bg-green-500/15 text-green-300 px-2 py-0.5 rounded-full font-medium hover:bg-green-500/10"
               >📞 撥話</a>
             )}
           </div>
@@ -207,11 +207,11 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
         {isLeader && (
           <div className="flex gap-2 flex-wrap justify-end">
             <motion.button onClick={() => setShowCloseModal(true)}
-              className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-orange-600"
+              className="text-sm bg-orange-500/100 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-orange-600"
               whileTap={{ scale: 0.95 }}
             >結單</motion.button>
             <motion.button onClick={() => setShowConfirm(true)}
-              className="text-sm bg-gray-100 text-white/80 px-3 py-1.5 rounded-xl font-medium hover:bg-gray-200"
+              className="text-sm bg-white/5 text-white/80 px-3 py-1.5 rounded-xl font-medium hover:bg-white/10"
               whileTap={{ scale: 0.95 }}
             >重置</motion.button>
           </div>
@@ -239,7 +239,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
               </div>
 
               {/* 訂單預覽 */}
-              <div className="bg-gray-50 rounded-2xl px-4 py-3 max-h-52 overflow-y-auto">
+              <div className="bg-white/5 rounded-2xl px-4 py-3 max-h-52 overflow-y-auto">
                 <pre className="text-sm text-white/80 whitespace-pre-wrap font-sans">{orderText}</pre>
               </div>
 
@@ -249,14 +249,14 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
                 <motion.button
                   onClick={handleCloseAndLine}
                   disabled={orders.length === 0}
-                  className="w-full bg-green-500 text-white py-3 rounded-2xl font-semibold text-base hover:bg-green-600 disabled:opacity-40 flex items-center justify-center gap-2"
+                  className="w-full bg-green-500/100 text-white py-3 rounded-2xl font-semibold text-base hover:bg-green-600 disabled:opacity-40 flex items-center justify-center gap-2"
                   whileTap={{ scale: 0.97 }}
                 >
                   <span>💬</span> 結單並傳送到 LINE
                 </motion.button>
                 <motion.button
                   onClick={handleCloseOnly}
-                  className="w-full bg-gray-100 text-white/80 py-3 rounded-2xl font-semibold text-base hover:bg-gray-200"
+                  className="w-full bg-white/5 text-white/80 py-3 rounded-2xl font-semibold text-base hover:bg-white/10"
                   whileTap={{ scale: 0.97 }}
                 >
                   僅結單
@@ -270,15 +270,15 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
       <AnimatePresence>
         {showConfirm && (
           <motion.div
-            className="bg-red-50 border border-red-200 rounded-2xl p-4"
+            className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <p className="text-red-700 font-medium mb-3">確定要清空此團購單的所有訂單嗎？</p>
+            <p className="text-red-300 font-medium mb-3">確定要清空此團購單的所有訂單嗎？</p>
             <div className="flex gap-2">
-              <button onClick={() => { onReset(session.id); setShowConfirm(false); }} className="flex-1 bg-red-500 text-white py-2 rounded-xl font-medium">確定清空</button>
-              <button onClick={() => setShowConfirm(false)} className="flex-1 bg-gray-100 text-white/80 py-2 rounded-xl font-medium">取消</button>
+              <button onClick={() => { onReset(session.id); setShowConfirm(false); }} className="flex-1 bg-red-500/100 text-white py-2 rounded-xl font-medium">確定清空</button>
+              <button onClick={() => setShowConfirm(false)} className="flex-1 bg-white/5 text-white/80 py-2 rounded-xl font-medium">取消</button>
             </div>
           </motion.div>
         )}
@@ -294,8 +294,8 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
                 onClick={() => setFilterMine((v) => !v)}
                 className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${
                   filterMine
-                    ? 'bg-orange-500 border-orange-500 text-white'
-                    : 'border-gray-300 text-white/50 hover:border-orange-400'
+                    ? 'bg-orange-500/100 border-orange-500 text-white'
+                    : 'border-white/15 text-white/50 hover:border-orange-400'
                 }`}
                 whileTap={{ scale: 0.95 }}
               >
@@ -341,8 +341,8 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">#{order.serialNo}</span>
-                      <span className={`font-semibold ${order.name === myName ? 'text-orange-600' : 'text-white'}`}>
+                      <span className="bg-orange-500/100 text-white text-xs font-bold px-2 py-0.5 rounded-full">#{order.serialNo}</span>
+                      <span className={`font-semibold ${order.name === myName ? 'text-orange-400' : 'text-white'}`}>
                         {order.name}{order.name === myName && ' ✦'}
                       </span>
                     </div>
@@ -359,12 +359,12 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
                       <div className="flex gap-1">
                         {onUpdateOrder && (
                           <motion.button onClick={() => setEditingOrder(order)}
-                            className="text-xs text-blue-500 border border-blue-300 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                            className="text-xs text-blue-500 border border-blue-500/20 px-2 py-1 rounded-lg hover:bg-blue-500/100/10 transition-colors"
                             whileTap={{ scale: 0.95 }}
                           >編輯</motion.button>
                         )}
                         <motion.button onClick={() => onRemoveOrder(order.id)}
-                          className="text-xs text-red-400 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                          className="text-xs text-red-400 border border-red-500/20 px-2 py-1 rounded-lg hover:bg-red-500/100/10 transition-colors"
                           whileTap={{ scale: 0.95 }}
                         >刪除</motion.button>
                       </div>
@@ -443,13 +443,13 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory, onMar
           return (
             <div key={s.id} className="border border-white/10 rounded-xl overflow-hidden">
               <div
-                className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-white/5 transition-colors"
                 onClick={() => setExpanded(isOpen ? null : s.id)}
               >
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-white">{s.shopName}</span>
-                    {allPaid && <span className="text-xs bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-medium">全額收款</span>}
+                    {allPaid && <span className="text-xs bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full font-medium">全額收款</span>}
                   </div>
                   <span className="text-xs text-white/40">{s.date}</span>
                 </div>
@@ -457,7 +457,7 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory, onMar
                   <div className="text-right">
                     <div className="text-sm text-white/50">{his.length} 杯 NT${total}</div>
                     {paidTotal > 0 && !allPaid && (
-                      <div className="text-xs text-green-600">已收 NT${paidTotal}</div>
+                      <div className="text-xs text-green-400">已收 NT${paidTotal}</div>
                     )}
                   </div>
                   <motion.span className="text-white/40" animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>▼</motion.span>
@@ -470,18 +470,18 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory, onMar
                     exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="border-t px-3 py-3 bg-gray-50 space-y-2">
+                    <div className="border-t px-3 py-3 bg-white/5 space-y-2">
                       {/* 收款清單 */}
                       <p className="text-xs text-white/40 font-medium mb-1">點擊標記收款狀態</p>
                       {his.map((o) => {
                         const isPaid = paidOrders.includes(o.id);
                         return (
                           <div key={o.id}
-                            className={`flex items-center justify-between text-sm rounded-xl px-2 py-1.5 cursor-pointer transition-colors ${isPaid ? 'bg-green-50 text-green-700' : 'hover:bg-gray-100 text-white/60'}`}
+                            className={`flex items-center justify-between text-sm rounded-xl px-2 py-1.5 cursor-pointer transition-colors ${isPaid ? 'bg-green-500/10 text-green-300' : 'hover:bg-white/5 text-white/60'}`}
                             onClick={() => onMarkPaid(s.id, o.id, !isPaid)}
                           >
                             <span className="flex items-center gap-2">
-                              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isPaid ? 'bg-green-500 border-green-500' : 'border-gray-300'}`}>
+                              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isPaid ? 'bg-green-500/100 border-green-500' : 'border-white/15'}`}>
                                 {isPaid && <span className="text-white text-xs leading-none">✓</span>}
                               </span>
                               <span>{o.name}・{o.drink}({o.size})</span>
@@ -491,10 +491,10 @@ function HistorySection({ pastSessions, getSessionOrders, onRemoveHistory, onMar
                         );
                       })}
                       <div className="flex gap-2 pt-2">
-                        <button onClick={() => handleCopy(s)} className="flex-1 bg-orange-500 text-white py-1.5 rounded-xl text-sm font-medium hover:bg-orange-600 transition-colors">
+                        <button onClick={() => handleCopy(s)} className="flex-1 bg-orange-500/100 text-white py-1.5 rounded-xl text-sm font-medium hover:bg-orange-600 transition-colors">
                           {copiedId === s.id ? '已複製！' : '複製'}
                         </button>
-                        <button onClick={() => onRemoveHistory(s.id)} className="px-4 py-1.5 bg-gray-200 text-white/60 rounded-xl text-sm hover:bg-red-100 hover:text-red-600 transition-colors">
+                        <button onClick={() => onRemoveHistory(s.id)} className="px-4 py-1.5 bg-white/10 text-white/60 rounded-xl text-sm hover:bg-red-500/10 hover:text-red-400 transition-colors">
                           刪除
                         </button>
                       </div>
@@ -528,7 +528,7 @@ function UserHistorySection({ pastSessions, getSessionOrders, myName }) {
           const isOpen = expanded === s.id;
           return (
             <div key={s.id} className="border border-white/10 rounded-xl overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-gray-50" onClick={() => setExpanded(isOpen ? null : s.id)}>
+              <div className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-white/5" onClick={() => setExpanded(isOpen ? null : s.id)}>
                 <div>
                   <span className="font-medium text-white">{s.shopName}</span>
                   <span className="text-xs text-white/40 ml-2">{s.date}</span>
@@ -541,7 +541,7 @@ function UserHistorySection({ pastSessions, getSessionOrders, myName }) {
               <AnimatePresence>
                 {isOpen && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                    <div className="border-t px-3 py-3 bg-gray-50 space-y-1.5">
+                    <div className="border-t px-3 py-3 bg-white/5 space-y-1.5">
                       {s.myOrders.map((o) => (
                         <div key={o.id} className="flex justify-between text-sm text-white/60">
                           <span>{o.drink}（{o.size}）{o.sugar}・{o.ice}{o.toppings.length ? ` +${o.toppings.join('+')}` : ''}</span>
@@ -586,7 +586,7 @@ export default function OrderSummary({
   return (
     <motion.div className="max-w-2xl mx-auto px-4 py-4 space-y-8" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
       {!isLeader && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-sm text-blue-700 text-center">
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-3 text-sm text-blue-300 text-center">
           截止前可點「編輯」或「刪除」修改自己的訂單
         </div>
       )}

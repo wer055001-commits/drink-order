@@ -19,12 +19,12 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
   const isStale = session.date !== todayStr();
   const canOrder = !isExpired && !isStale;
   const timeColor = isExpired
-    ? 'text-red-600'
+    ? 'text-red-400'
     : secondsLeft <= 120
     ? 'text-red-500'
     : secondsLeft <= 300
     ? 'text-amber-500'
-    : 'text-green-600';
+    : 'text-green-400';
 
   return (
     <motion.div
@@ -49,11 +49,11 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
       </div>
 
       {isStale && isLeader && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-          <p className="text-sm text-amber-700 font-medium mb-2">此為昨日或更早的團購單</p>
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+          <p className="text-sm text-amber-300 font-medium mb-2">此為昨日或更早的團購單</p>
           <div className="flex gap-2">
-            <button onClick={() => onContinue(session.id)} className="flex-1 text-sm bg-amber-500 text-white py-1.5 rounded-xl font-medium hover:bg-amber-600 transition-colors">繼續此單</button>
-            <button onClick={() => setConfirmReset(true)} className="flex-1 text-sm bg-gray-100 text-white/60 py-1.5 rounded-xl font-medium hover:bg-gray-200 transition-colors">刪除</button>
+            <button onClick={() => onContinue(session.id)} className="flex-1 text-sm bg-amber-500/100 text-white py-1.5 rounded-xl font-medium hover:bg-amber-600 transition-colors">繼續此單</button>
+            <button onClick={() => setConfirmReset(true)} className="flex-1 text-sm bg-white/5 text-white/60 py-1.5 rounded-xl font-medium hover:bg-white/10 transition-colors">刪除</button>
           </div>
         </div>
       )}
@@ -62,7 +62,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
         <div className="flex gap-2 flex-wrap">
           {!isExpired && (
             <>
-              <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs font-medium border border-blue-200 text-blue-500 px-3 py-1.5 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Clock className="w-3 h-3" /> +15 分鐘</motion.button>
+              <motion.button onClick={() => onExtend(session.id, 15)} className="text-xs font-medium border border-blue-500/20 text-blue-500 px-3 py-1.5 rounded-xl hover:bg-blue-500/100/10 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Clock className="w-3 h-3" /> +15 分鐘</motion.button>
               <motion.button onClick={() => onProxyOrder(session.id)} className="text-xs font-medium border border-purple-200 text-purple-500 px-3 py-1.5 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer flex items-center gap-1" whileTap={{ scale: 0.95 }}><Users className="w-3 h-3" /> 代點</motion.button>
               {secondsLeft <= 300 && (
                 <motion.button
@@ -70,14 +70,14 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
                     const text = `⏰ 飲料快截止了！剩 ${display}，還沒點的快來！\n${window.location.href}`;
                     window.open(`https://line.me/R/share?text=${encodeURIComponent(text)}`, '_blank');
                   }}
-                  className="text-xs font-medium border border-orange-200 text-orange-500 px-3 py-1.5 rounded-xl hover:bg-orange-50 transition-colors animate-pulse cursor-pointer flex items-center gap-1"
+                  className="text-xs font-medium border border-orange-500/20 text-orange-500 px-3 py-1.5 rounded-xl hover:bg-orange-500/100/10 transition-colors animate-pulse cursor-pointer flex items-center gap-1"
                   whileTap={{ scale: 0.95 }}
                 ><Send className="w-3 h-3" /> 提醒成員</motion.button>
               )}
             </>
           )}
-          <motion.button onClick={() => setConfirmClose(true)} className="text-xs font-medium border border-white/10 text-white/50 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>關閉</motion.button>
-          <motion.button onClick={() => setConfirmReset(true)} className="text-xs font-medium border border-red-100 text-red-400 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>重置</motion.button>
+          <motion.button onClick={() => setConfirmClose(true)} className="text-xs font-medium border border-white/10 text-white/50 px-3 py-1.5 rounded-xl hover:bg-white/5 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>關閉</motion.button>
+          <motion.button onClick={() => setConfirmReset(true)} className="text-xs font-medium border border-red-100 text-red-400 px-3 py-1.5 rounded-xl hover:bg-red-500/100/10 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>重置</motion.button>
         </div>
       )}
 
@@ -85,7 +85,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
         canOrder ? (
           <motion.button
             onClick={() => onOrder(session.id)}
-            className="w-full bg-orange-500 text-white py-2.5 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+            className="w-full bg-orange-500/100 text-white py-2.5 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -101,30 +101,30 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
       <AnimatePresence>
         {confirmClose && (
           <motion.div
-            className="bg-gray-50 border rounded-xl p-3 space-y-2"
+            className="bg-white/5 border rounded-xl p-3 space-y-2"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
             <p className="text-sm font-medium text-white/80">關閉此團購單？（{sessionOrders.length} 筆訂單將保留在歷史紀錄）</p>
             <div className="flex gap-2">
-              <button onClick={() => { onClose(session.id); setConfirmClose(false); }} className="flex-1 text-sm bg-orange-500 text-white py-1.5 rounded-xl font-medium">確定關閉</button>
-              <button onClick={() => setConfirmClose(false)} className="flex-1 text-sm bg-gray-100 text-white/60 py-1.5 rounded-xl font-medium">取消</button>
+              <button onClick={() => { onClose(session.id); setConfirmClose(false); }} className="flex-1 text-sm bg-orange-500/100 text-white py-1.5 rounded-xl font-medium">確定關閉</button>
+              <button onClick={() => setConfirmClose(false)} className="flex-1 text-sm bg-white/5 text-white/60 py-1.5 rounded-xl font-medium">取消</button>
             </div>
           </motion.div>
         )}
 
         {confirmReset && (
           <motion.div
-            className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-2"
+            className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 space-y-2"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <p className="text-sm font-medium text-red-700">重置此團購單？所有 {sessionOrders.length} 筆訂單將被刪除。</p>
+            <p className="text-sm font-medium text-red-300">重置此團購單？所有 {sessionOrders.length} 筆訂單將被刪除。</p>
             <div className="flex gap-2">
-              <button onClick={() => { onReset(session.id); setConfirmReset(false); }} className="flex-1 text-sm bg-red-500 text-white py-1.5 rounded-xl font-medium">確定刪除</button>
-              <button onClick={() => setConfirmReset(false)} className="flex-1 text-sm bg-gray-100 text-white/60 py-1.5 rounded-xl font-medium">取消</button>
+              <button onClick={() => { onReset(session.id); setConfirmReset(false); }} className="flex-1 text-sm bg-red-500/100 text-white py-1.5 rounded-xl font-medium">確定刪除</button>
+              <button onClick={() => setConfirmReset(false)} className="flex-1 text-sm bg-white/5 text-white/60 py-1.5 rounded-xl font-medium">取消</button>
             </div>
           </motion.div>
         )}
@@ -292,11 +292,11 @@ function NidinPicker({ onSelectStore, onCancel }) {
               )}
               {suggestions.map((b) => (
                 <button key={b.brand_code || b.id} onClick={() => selectBrand(b)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-white/10"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-500/100/10 text-left border border-white/10"
                 >
                   {b.image
                     ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
-                    : <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🏪</div>
+                    : <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center text-lg shrink-0">🏪</div>
                   }
                   <div className="font-medium text-white text-sm">{b.name}</div>
                 </button>
@@ -313,7 +313,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
           {!storeLoading && stores.length === 0 && <p className="text-sm text-white/40 text-center py-4">此品牌無可用分店</p>}
           {stores.map((s) => (
             <button key={s.id} onClick={() => selectStore(s)} disabled={storeLoading}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-white/10 disabled:opacity-50"
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-500/100/10 text-left border border-white/10 disabled:opacity-50"
             >
               <div>
                 <div className="font-medium text-white text-sm">{s.name}</div>
@@ -366,7 +366,7 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
       <div className="flex flex-wrap gap-2">
         {DURATION_OPTIONS.map((d) => (
           <motion.button key={d} type="button" onClick={() => setDuration(d)}
-            className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${duration === d ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-white/10 text-white/60 hover:border-orange-300'}`}
+            className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${duration === d ? 'border-orange-500 bg-orange-500/10 text-orange-400' : 'border-white/10 text-white/60 hover:border-orange-300'}`}
             whileTap={{ scale: 0.95 }}
           >{d} 分鐘</motion.button>
         ))}
@@ -399,7 +399,7 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
         </div>
 
         {/* 模式切換 */}
-        <div className="flex bg-gray-100 rounded-xl p-1">
+        <div className="flex bg-white/5 rounded-xl p-1">
           <button onClick={() => { setMode('nidin'); setNidinStore(null); }}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'nidin' ? 'bg-white/5 text-orange-500 shadow-sm' : 'text-white/50'}`}
           >🛍 從你訂選擇</button>
@@ -419,7 +419,7 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
         {/* 你訂已選好店家 */}
         {mode === 'nidin' && nidinStore && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
+            <div className="flex items-center justify-between bg-orange-500/10 border border-orange-500/20 rounded-2xl px-4 py-3">
               <div>
                 <p className="font-semibold text-white">{nidinStore.name}</p>
                 {nidinStore.phone && <p className="text-xs text-white/50 mt-0.5">📞 {nidinStore.phone}</p>}
@@ -430,7 +430,7 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
             <motion.button
               onClick={handleCreateFromNidin}
               disabled={creating}
-              className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 disabled:opacity-60 transition-colors"
+              className="w-full bg-orange-500/100 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 disabled:opacity-60 transition-colors"
               whileTap={{ scale: 0.98 }}
             >{creating ? '建立中...' : `建立團購單（限時 ${duration} 分鐘）`}</motion.button>
           </div>
@@ -457,7 +457,7 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
             <DurationSelector />
             <motion.button
               onClick={handleCreateFromSaved}
-              className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+              className="w-full bg-orange-500/100 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
               whileTap={{ scale: 0.98 }}
             >建立團購單（限時 {duration} 分鐘）</motion.button>
           </div>
@@ -522,7 +522,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
     });
   }
 
-  const timeColor = isExpired ? 'text-red-600' : secondsLeft <= 120 ? 'text-red-500' : secondsLeft <= 300 ? 'text-amber-500' : 'text-green-600';
+  const timeColor = isExpired ? 'text-red-400' : secondsLeft <= 120 ? 'text-red-500' : secondsLeft <= 300 ? 'text-amber-500' : 'text-green-400';
 
   const orderSummary = selectedItem
     ? `${selectedItem.name}（${size}）・${sugar}・${ice}${toppings.length ? '・+' + toppings.join('、') : ''}${note ? '・' + note : ''}`
@@ -553,22 +553,22 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
       <AnimatePresence>
         {!isExpired && secondsLeft <= 120 && (
           <motion.div
-            className="bg-red-50 border border-red-300 rounded-2xl px-4 py-2.5 mb-3 flex items-center gap-2"
+            className="bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-2.5 mb-3 flex items-center gap-2"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
             <span className="text-lg">⚠️</span>
-            <p className="text-sm font-semibold text-red-700">點餐即將截止！剩餘 {display}，請盡快送出</p>
+            <p className="text-sm font-semibold text-red-300">點餐即將截止！剩餘 {display}，請盡快送出</p>
           </motion.div>
         )}
       </AnimatePresence>
 
       {isExpired ? (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-2">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center space-y-2">
           <p className="text-2xl">⏰</p>
-          <p className="text-red-700 font-bold text-lg">點餐時間已截止</p>
-          <p className="text-red-600 text-sm">請聯絡團主延長時間</p>
+          <p className="text-red-300 font-bold text-lg">點餐時間已截止</p>
+          <p className="text-red-400 text-sm">請聯絡團主延長時間</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -598,7 +598,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                 <div className="grid grid-cols-2 gap-2">
                   {filteredMenu.map((item) => (
                     <motion.button type="button" key={item.id} onClick={() => handleItemSelect(item)}
-                      className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-50' : 'border-white/10 hover:border-orange-300'}`}
+                      className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 hover:border-orange-300'}`}
                       whileTap={{ scale: 0.97 }}
                     >
                       <div className="font-medium text-white text-sm">{item.name}</div>
@@ -631,7 +631,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                     <div className="flex gap-2">
                       {selectedItem.sizes.map((s) => (
                         <motion.button type="button" key={s.label} onClick={() => setSize(s.label)}
-                          className={`flex-1 py-2 rounded-xl border-2 font-medium transition-colors ${size === s.label ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-white/10 text-white/60 hover:border-orange-300'}`}
+                          className={`flex-1 py-2 rounded-xl border-2 font-medium transition-colors ${size === s.label ? 'border-orange-500 bg-orange-500/10 text-orange-400' : 'border-white/10 text-white/60 hover:border-orange-300'}`}
                           whileTap={{ scale: 0.97 }}
                         >{s.label} {s.add > 0 ? `+${s.add}` : ''}</motion.button>
                       ))}
@@ -644,7 +644,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                   <div className="flex flex-wrap gap-2">
                     {shop.options.sugar.map((s) => (
                       <motion.button type="button" key={s} onClick={() => setSugar(s)}
-                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${sugar === s ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-300 text-white/60 hover:border-orange-400'}`}
+                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${sugar === s ? 'border-orange-500 bg-orange-500/100 text-white' : 'border-white/15 text-white/60 hover:border-orange-400'}`}
                         whileTap={{ scale: 0.95 }}
                       >{s}</motion.button>
                     ))}
@@ -656,7 +656,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                   <div className="flex flex-wrap gap-2">
                     {shop.options.ice.map((ic) => (
                       <motion.button type="button" key={ic} onClick={() => setIce(ic)}
-                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${ice === ic ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300 text-white/60 hover:border-blue-400'}`}
+                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${ice === ic ? 'border-blue-500 bg-blue-500/100 text-white' : 'border-white/15 text-white/60 hover:border-blue-400'}`}
                         whileTap={{ scale: 0.95 }}
                       >{ic}</motion.button>
                     ))}
@@ -668,7 +668,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                   <div className="flex flex-wrap gap-2">
                     {shop.options.toppings.map((t) => (
                       <motion.button type="button" key={t} onClick={() => toggleTopping(t)}
-                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500 text-white' : 'border-gray-300 text-white/60 hover:border-green-400'}`}
+                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500/100 text-white' : 'border-white/15 text-white/60 hover:border-green-400'}`}
                         whileTap={{ scale: 0.95 }}
                       >{t}</motion.button>
                     ))}
@@ -684,13 +684,13 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                 </div>
 
                 <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4 space-y-3">
-                  <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-sm text-orange-800">
+                  <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-3 py-2 text-sm text-orange-300">
                     <span className="font-semibold">確認：</span>{orderSummary}
-                    <span className="font-bold ml-2 text-orange-600">NT${calcPrice()}</span>
+                    <span className="font-bold ml-2 text-orange-400">NT${calcPrice()}</span>
                   </div>
                   <motion.button
                     type="submit"
-                    className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                    className="w-full bg-orange-500/100 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -842,7 +842,7 @@ export default function OrderForm({
       {isLeader && (
         <motion.button
           onClick={() => setView('create')}
-          className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+          className="w-full bg-orange-500/100 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
         >

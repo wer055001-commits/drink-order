@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, ClipboardList, User, ChevronDown, LogOut } from 'lucide-react';
+import { Coffee, ClipboardList, User, ChevronDown, LogOut, Sun, Moon } from 'lucide-react';
 
 const ROLE_LABELS = { admin: '管理者', leader: '團主', user: '使用者' };
 const SWITCH_OPTIONS = [
@@ -8,7 +8,7 @@ const SWITCH_OPTIONS = [
   { key: 'user', icon: User, label: '使用者' },
 ];
 
-export default function Header({ activeSessions, ordersCount, role, onLogout, onSwitchRole, siteTitle }) {
+export default function Header({ activeSessions, ordersCount, role, onLogout, onSwitchRole, siteTitle, theme, onToggleTheme }) {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -38,10 +38,22 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            {/* 主題切換 */}
+            <motion.button
+              onClick={onToggleTheme}
+              className="w-9 h-9 rounded-full flex items-center justify-center cursor-pointer"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+              whileTap={{ scale: 0.9 }}
+              title={theme === 'dark' ? '切換淺色' : '切換深色'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-violet-400" />}
+            </motion.button>
+
           <div className="relative" ref={menuRef}>
             <motion.button
               onClick={() => setShowMenu((v) => !v)}
-              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer text-white/70"
+              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full cursor-pointer"
               style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
               whileTap={{ scale: 0.95 }}
             >
@@ -78,6 +90,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
           </div>
         </div>
       </div>

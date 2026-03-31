@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
@@ -12,6 +12,16 @@ import { useAuth } from './hooks/useAuth';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('order');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  function toggleTheme() {
+    setTheme((t) => t === 'dark' ? 'light' : 'dark');
+  }
   const { role, isAdmin, isLeader, login, logout, saveUserName, getUserName } = useAuth();
 
   const {
@@ -93,6 +103,8 @@ export default function App() {
         onLogout={handleLogout}
         onSwitchRole={handleSwitchRole}
         siteTitle={siteTitle}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {announcement && (
