@@ -114,6 +114,28 @@ body::after {
 
 #root { position: relative; z-index: 1; }
 
+/* ── 全域表單元素（確保深淺主題都可見）───── */
+input, textarea, select {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--input-border) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--input-placeholder) !important;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: rgba(167,139,250,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(167,139,250,0.1) !important;
+}
+/* checkbox / radio 不套用 */
+input[type="checkbox"], input[type="radio"] {
+  background-color: unset !important;
+}
+/* range 不套用 */
+input[type="range"] {
+  background-color: unset !important;
+}
+
 /* ── 共用元件 ─────────────────────────────── */
 .glass-card {
   background: var(--surface);
