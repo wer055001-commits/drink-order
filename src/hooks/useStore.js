@@ -24,7 +24,7 @@ export function useStore() {
   const [histSessions, setHistSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [announcementText, setAnnouncementText] = useState('');
-  const [siteTitleText, setSiteTitleText] = useState('麻將飲料團');
+  const [siteTitleText, setSiteTitleText] = useState(() => localStorage.getItem('siteTitle') || '');
   const [leaderCodeText, setLeaderCodeText] = useState('1212');
 
   // 追蹤各 listener 是否已收到第一次資料
@@ -87,7 +87,9 @@ export function useStore() {
 
     // ── 系統標題（非阻塞載入）───────────────────────────────────
     unsubs.push(onSnapshot(doc(db, 'config', 'siteTitle'), (snap) => {
-      setSiteTitleText(snap.exists() ? (snap.data().text || '麻將飲料團') : '麻將飲料團');
+      const t = snap.exists() ? (snap.data().text || '') : '';
+      setSiteTitleText(t);
+      if (t) localStorage.setItem('siteTitle', t);
     }));
 
     // ── 團主驗證碼（非阻塞載入）──────────────────────────────────
