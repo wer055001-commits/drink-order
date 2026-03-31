@@ -169,53 +169,33 @@ function NidinPicker({ onSelectStore, onCancel }) {
       })
       .catch(() => {});
 
-    // 附近飲料店（多種方式嘗試）
+    // 附近飲料品牌
     getLocation()
       .then(async (loc) => {
         locationRef.current = loc;
-
-        // 嘗試1：src_type=3
-        let all = [];
-        try {
-          const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=50&src_type=3`);
-          const data = await res.json();
-          all = data.stores || data.store_list || [];
-        } catch {}
-
-        // 嘗試2：不帶 src_type（抓全部附近店家）
-        if (all.length === 0) {
-          try {
-            const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80`);
-            const data = await res.json();
-            all = data.stores || data.store_list || [];
-          } catch {}
-        }
-
-        // 嘗試3：用 search/brand API 搜飲料
-        if (all.length === 0) {
+        const DRINK_KEYWORDS = ['飲料', '茶', '咖啡'];
+        let brands = [];
+        for (const kw of DRINK_KEYWORDS) {
           try {
             const res = await fetch('/api/nidin?path=search/brand', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, keyword: '飲料', shopper_id: null, src_type: 0, page: 1, count: 30 }),
+              body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, keyword: kw, shopper_id: null, src_type: 0, page: 1, count: 30 }),
             });
             const data = await res.json();
-            const brands = data.brand?.list || [];
-            // 把品牌轉換成可選的店家格式
-            all = brands.map((b) => ({
-              id: b.id,
-              name: b.name,
-              brand_name: b.name,
-              brand_code: b.brand_code,
-              address: '',
-              distance: b.distance,
-              image: b.image,
-              _isBrand: true,
-            }));
+            (data.brand?.list || []).forEach((b) => {
+              if (!brands.find((x) => x.id === b.id)) brands.push(b);
+            });
           } catch {}
         }
-
-        setNearbyStores(all);
+        // 過濾飲料相關 + 轉格式
+        const DRINK_TAGS = ['飲料', '手搖', '茶飲', '咖啡', '果汁', '奶茶', '飲品', '冰品', '茶'];
+        const filtered = brands.filter((b) => {
+          const tags = (b.meal_tag_info || []).map((t) => t.name).join('');
+          const name = b.name || '';
+          return DRINK_TAGS.some((t) => tags.includes(t) || name.includes(t));
+        });
+        setNearbyStores(filtered);
       })
       .catch(() => {})
       .finally(() => setNearbyLoading(false));
@@ -227,11 +207,6 @@ function NidinPicker({ onSelectStore, onCancel }) {
     .filter((b) => b._score > 0)
     .sort((a, b) => b._score - a._score)
     .slice(0, 8);
-
-  // 依距離過濾附近店家
-  const filteredNearby = nearbyStores
-    .filter((s) => s.distance == null || s.distance <= radiusKm * 1000)
-    .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 
   async function selectBrand(brand) {
     setSelectedBrand(brand); setStoreLoading(true); setError(''); setStep('stores');
@@ -292,11 +267,6 @@ function NidinPicker({ onSelectStore, onCancel }) {
   }
 
   async function selectStore(store, brandName) {
-    // 如果是品牌格式（從附近列表來的），走 selectBrand 流程
-    if (store._isBrand) {
-      selectBrand({ id: store.id, name: store.name, brand_code: store.brand_code });
-      return;
-    }
     setStoreLoading(true); setError('');
     try {
       const res = await fetch(`/api/nidin?path=store/${store.id}/onShelfMenu`);
@@ -361,33 +331,27 @@ function NidinPicker({ onSelectStore, onCancel }) {
             </div>
           )}
 
-          {/* 附近飲料店列表 */}
+          {/* 附近飲料品牌列表 */}
           {!query.trim() && (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <p className="text-xs font-semibold px-1 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-                <MapPin className="w-3 h-3" /> 附近 {radiusKm}km 內的飲料店
+                <MapPin className="w-3 h-3" /> 附近的飲料品牌
               </p>
-              {nearbyLoading && <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>定位中，搜尋附近店家...</p>}
-              {!nearbyLoading && filteredNearby.length === 0 && (
-                <p className="text-sm text-center py-3" style={{ color: 'var(--text-muted)' }}>附近沒有找到飲料店，試試加大範圍</p>
+              {nearbyLoading && <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>定位中，搜尋附近飲料店...</p>}
+              {!nearbyLoading && nearbyStores.length === 0 && (
+                <p className="text-sm text-center py-3" style={{ color: 'var(--text-muted)' }}>附近沒有找到飲料店</p>
               )}
               <div className="max-h-64 overflow-y-auto space-y-1">
-                {filteredNearby.map((s) => (
-                  <button key={s.id} onClick={() => selectStore(s, s.brand_name)} disabled={storeLoading}
-                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left cursor-pointer disabled:opacity-50 transition-colors"
+                {nearbyStores.map((b) => (
+                  <button key={b.id} onClick={() => selectBrand(b)} disabled={storeLoading}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left cursor-pointer disabled:opacity-50 transition-colors"
                     style={{ border: '1px solid var(--border)' }}
                   >
-                    <div className="min-w-0">
-                      <div className="font-medium text-sm truncate" style={{ color: 'var(--text)' }}>
-                        {s.brand_name && <span className="text-orange-500">{s.brand_name}</span>}
-                        {s.brand_name && ' '}
-                        {s.name}
-                      </div>
-                      {s.address && <div className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{s.address}</div>}
-                    </div>
-                    {s.distance != null && (
-                      <span className="text-xs text-orange-400 font-bold shrink-0 ml-2">{formatDistance(s.distance)}</span>
-                    )}
+                    {b.image
+                      ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
+                      : <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--surface)' }}><Store className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></div>
+                    }
+                    <div className="font-medium text-sm" style={{ color: 'var(--text)' }}>{b.name}</div>
                   </button>
                 ))}
               </div>
