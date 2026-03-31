@@ -63,7 +63,8 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
             <AnimatePresence>
               {showMenu && (
                 <motion.div
-                  className="absolute right-0 top-12 glass-card py-2 z-50 w-44 overflow-hidden"
+                  className="absolute right-0 top-12 py-2 z-50 w-44 overflow-hidden rounded-2xl"
+                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
                   initial={{ opacity: 0, scale: 0.9, y: -8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: -8 }}
