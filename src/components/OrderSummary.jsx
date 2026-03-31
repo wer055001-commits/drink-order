@@ -38,7 +38,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-white text-lg">✏️ 修改訂單</h3>
+          <h3 className="font-bold text-lg">✏️ 修改訂單</h3>
           <button onClick={onClose} className="text-white/40 hover:text-white/60 text-2xl leading-none">×</button>
         </div>
 
@@ -50,7 +50,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
                 onClick={() => { setSelectedItem(item); setSize(item.sizes[0]?.label || ''); setToppings([]); }}
                 className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 hover:border-orange-300'}`}
               >
-                <div className="font-medium text-white text-sm">{item.name}</div>
+                <div className="font-medium text-sm">{item.name}</div>
                 <div className="text-xs text-orange-500">NT${item.price}起</div>
               </button>
             ))}
@@ -217,7 +217,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-white text-lg">結單確認</h3>
+                <h3 className="font-bold text-lg">結單確認</h3>
                 <button onClick={() => setShowCloseModal(false)} className="text-white/40 hover:text-white/60 text-2xl leading-none">×</button>
               </div>
 

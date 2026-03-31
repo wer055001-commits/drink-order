@@ -138,7 +138,7 @@ function NidinImportModal({ onImport, onClose }) {
               {step !== 'search' && (
                 <button onClick={goBack} className="text-white/40 hover:text-white/60 text-xl pr-1">←</button>
               )}
-              <h3 className="font-bold text-white text-lg">{stepTitle[step]}</h3>
+              <h3 className="font-bold text-lg">{stepTitle[step]}</h3>
             </div>
             <button onClick={onClose} className="text-white/40 hover:text-white/60 text-2xl leading-none">×</button>
           </div>

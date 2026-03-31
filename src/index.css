@@ -232,3 +232,36 @@ input[type="range"]::-webkit-slider-thumb {
 [data-theme="light"] header button,
 [data-theme="light"] header span { color: #1e293b; }
 [data-theme="light"] header p { color: #64748b !important; }
+
+/* 淺色主題下 — 卡片與一般區域的文字顏色修正 */
+[data-theme="light"] .glass-card,
+[data-theme="light"] .glow-card,
+[data-theme="light"] main {
+  color: #1e293b;
+}
+/* 淺色主題下 text-white 系列在非按鈕元素上改深色 */
+[data-theme="light"] .glass-card .text-white,
+[data-theme="light"] .glow-card .text-white,
+[data-theme="light"] main .text-white:not(button .text-white) { color: #1e293b !important; }
+[data-theme="light"] .glass-card .text-white\/80,
+[data-theme="light"] main .text-white\/80 { color: #334155 !important; }
+[data-theme="light"] .glass-card .text-white\/60,
+[data-theme="light"] main .text-white\/60 { color: #475569 !important; }
+[data-theme="light"] .glass-card .text-white\/50,
+[data-theme="light"] main .text-white\/50 { color: #64748b !important; }
+[data-theme="light"] .glass-card .text-white\/40,
+[data-theme="light"] main .text-white\/40 { color: #94a3b8 !important; }
+/* 淺色主題下 border-white 系列改深色 */
+[data-theme="light"] .border-white\/10 { border-color: rgba(0,0,0,0.08) !important; }
+[data-theme="light"] .border-white\/15 { border-color: rgba(0,0,0,0.1) !important; }
+/* 淺色主題下 bg-white/5 改可見 */
+[data-theme="light"] .bg-white\/5 { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .bg-white\/10 { background-color: rgba(0,0,0,0.05) !important; }
+/* 淺色主題 hover */
+[data-theme="light"] .hover\:bg-white\/5:hover { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.06) !important; }
+/* 淺色主題下 close/delete 按鈕 */
+[data-theme="light"] .text-white\/40.hover\:text-white\/60:hover { color: #475569 !important; }
+/* 淺色主題下 gray 系列修正 */
+[data-theme="light"] .text-gray-300 { color: #94a3b8 !important; }
+[data-theme="light"] .text-gray-400 { color: #64748b !important; }

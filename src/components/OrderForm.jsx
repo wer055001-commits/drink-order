@@ -35,7 +35,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
     >
       <div className="flex items-start justify-between">
         <div>
-          <div className="font-bold text-white text-lg">{session.shopName}</div>
+          <div className="font-bold text-lg">{session.shopName}</div>
           <div className="text-sm text-white/40">{session.date}</div>
         </div>
         <div className="text-right">
@@ -298,7 +298,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
                     ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
                     : <div className="w-9 h-9 rounded-lg bg-orange-500/15 flex items-center justify-center text-lg shrink-0">🏪</div>
                   }
-                  <div className="font-medium text-white text-sm">{b.name}</div>
+                  <div className="font-medium text-sm">{b.name}</div>
                 </button>
               ))}
             </div>
@@ -316,7 +316,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
               className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-500/100/10 text-left border border-white/10 disabled:opacity-50"
             >
               <div>
-                <div className="font-medium text-white text-sm">{s.name}</div>
+                <div className="font-medium text-sm">{s.name}</div>
                 {s.address && <div className="text-xs text-white/40 mt-0.5">{s.address}</div>}
               </div>
               {s.distance != null && (
@@ -421,7 +421,7 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
           <div className="space-y-4">
             <div className="flex items-center justify-between bg-orange-500/10 border border-orange-500/20 rounded-2xl px-4 py-3">
               <div>
-                <p className="font-semibold text-white">{nidinStore.name}</p>
+                <p className="font-semibold" style={{ color: "var(--text)" }}>{nidinStore.name}</p>
                 {nidinStore.phone && <p className="text-xs text-white/50 mt-0.5">📞 {nidinStore.phone}</p>}
               </div>
               <button onClick={() => setNidinStore(null)} className="text-xs text-white/40 hover:text-red-500">重選</button>
@@ -601,7 +601,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                       className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 hover:border-orange-300'}`}
                       whileTap={{ scale: 0.97 }}
                     >
-                      <div className="font-medium text-white text-sm">{item.name}</div>
+                      <div className="font-medium text-sm">{item.name}</div>
                       <div className="text-xs text-orange-500">
                         NT${item.price}
                         {item.sizes.length > 1 && item.sizes.slice(1).map((s) => s.add > 0 ? ` / ${s.label} +${s.add}` : '').join('')}
