@@ -24,15 +24,16 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
   const items = NAV_ITEMS[role] || NAV_ITEMS.user;
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-40"
-      style={{
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.04), 0 -1px 0 rgba(0,0,0,0.03)',
-      }}
-    >
-      <div className="max-w-2xl mx-auto flex">
+    <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <nav
+        className="max-w-md mx-auto flex rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(20,20,35,0.85)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        }}
+      >
         {items.map((item) => {
           const isActive = activeTab === item.key;
           const Icon = item.icon;
@@ -40,52 +41,37 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className="flex-1 flex flex-col items-center py-2 pt-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] relative cursor-pointer"
+              className="flex-1 flex flex-col items-center py-3 relative cursor-pointer"
             >
-              {isActive && (
-                <motion.div
-                  layoutId="bottomNavIndicator"
-                  className="absolute top-0 h-[3px] w-10 rounded-full"
-                  style={{ background: 'linear-gradient(90deg, #fb923c, #f97316)' }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
               <div className="relative">
-                <motion.div
-                  animate={isActive ? { scale: 1.15, y: -2 } : { scale: 1, y: 0 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                >
+                <motion.div animate={isActive ? { scale: 1.15 } : { scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}>
                   {isActive ? (
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{
-                        background: 'linear-gradient(135deg, #fb923c, #f97316)',
-                        boxShadow: '3px 3px 8px rgba(249,115,22,0.25)',
-                      }}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ background: 'linear-gradient(135deg, #a78bfa, #f472b6)', boxShadow: '0 4px 16px rgba(167,139,250,0.35)' }}
                     >
-                      <Icon className="w-[18px] h-[18px] text-white" strokeWidth={2.5} />
+                      <Icon className="w-5 h-5 text-white" strokeWidth={2.2} />
                     </div>
                   ) : (
-                    <Icon className="w-[22px] h-[22px] text-gray-400" strokeWidth={1.8} />
+                    <div className="w-10 h-10 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-white/35" strokeWidth={1.8} />
+                    </div>
                   )}
                 </motion.div>
                 {item.key === 'summary' && ordersCount > 0 && (role === 'leader' || role === 'admin') && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1"
-                  >
-                    {ordersCount > 9 ? '9+' : ordersCount}
-                  </motion.span>
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center px-1 rounded-full text-[10px] font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #f472b6, #fb923c)' }}
+                  >{ordersCount > 9 ? '9+' : ordersCount}</motion.span>
                 )}
               </div>
-              <span className={`text-[10px] font-semibold mt-1 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-400'}`}>
+              <span className={`text-[10px] font-semibold mt-1 transition-colors ${isActive ? 'text-white' : 'text-white/30'}`}>
                 {item.label}
               </span>
             </button>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

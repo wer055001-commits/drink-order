@@ -85,7 +85,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
+    <div className="min-h-screen">
       <Header
         activeSessions={activeSessions}
         ordersCount={totalActiveOrdersCount}

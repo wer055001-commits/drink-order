@@ -28,24 +28,24 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
 
   return (
     <motion.div
-      className={`clay-card p-4 space-y-3 ${isExpired ? 'opacity-60' : ''}`}
+      className={`glass-card p-4 space-y-3 ${isExpired ? 'opacity-60' : ''}`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}
     >
       <div className="flex items-start justify-between">
         <div>
-          <div className="font-bold text-gray-800 text-lg">{session.shopName}</div>
-          <div className="text-sm text-gray-400">{session.date}</div>
+          <div className="font-bold text-white text-lg">{session.shopName}</div>
+          <div className="text-sm text-white/40">{session.date}</div>
         </div>
         <div className="text-right">
-          <div className="text-xs text-gray-400 mb-0.5">剩餘時間</div>
+          <div className="text-xs text-white/40 mb-0.5">剩餘時間</div>
           <div className={`font-bold ${timeColor}`}>{isExpired ? '已截止' : display}</div>
         </div>
       </div>
 
-      <div className="text-sm text-gray-500">
-        目前 <span className="font-semibold text-gray-700">{sessionOrders.length}</span> 筆訂單
+      <div className="text-sm text-white/50">
+        目前 <span className="font-semibold text-white/80">{sessionOrders.length}</span> 筆訂單
       </div>
 
       {isStale && isLeader && (
@@ -53,7 +53,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
           <p className="text-sm text-amber-700 font-medium mb-2">此為昨日或更早的團購單</p>
           <div className="flex gap-2">
             <button onClick={() => onContinue(session.id)} className="flex-1 text-sm bg-amber-500 text-white py-1.5 rounded-xl font-medium hover:bg-amber-600 transition-colors">繼續此單</button>
-            <button onClick={() => setConfirmReset(true)} className="flex-1 text-sm bg-gray-100 text-gray-600 py-1.5 rounded-xl font-medium hover:bg-gray-200 transition-colors">刪除</button>
+            <button onClick={() => setConfirmReset(true)} className="flex-1 text-sm bg-gray-100 text-white/60 py-1.5 rounded-xl font-medium hover:bg-gray-200 transition-colors">刪除</button>
           </div>
         </div>
       )}
@@ -76,7 +76,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
               )}
             </>
           )}
-          <motion.button onClick={() => setConfirmClose(true)} className="text-xs font-medium border border-gray-200 text-gray-500 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>關閉</motion.button>
+          <motion.button onClick={() => setConfirmClose(true)} className="text-xs font-medium border border-white/10 text-white/50 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>關閉</motion.button>
           <motion.button onClick={() => setConfirmReset(true)} className="text-xs font-medium border border-red-100 text-red-400 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer" whileTap={{ scale: 0.95 }}>重置</motion.button>
         </div>
       )}
@@ -92,7 +92,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
             我要點餐 →
           </motion.button>
         ) : isStale ? (
-          <div className="text-center text-sm text-gray-400 py-2">此團購單已過期（跨日）</div>
+          <div className="text-center text-sm text-white/40 py-2">此團購單已過期（跨日）</div>
         ) : (
           <div className="text-center text-sm text-red-400 py-2">⏰ 點餐時間已截止，請聯絡團主延長</div>
         )
@@ -106,10 +106,10 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <p className="text-sm font-medium text-gray-700">關閉此團購單？（{sessionOrders.length} 筆訂單將保留在歷史紀錄）</p>
+            <p className="text-sm font-medium text-white/80">關閉此團購單？（{sessionOrders.length} 筆訂單將保留在歷史紀錄）</p>
             <div className="flex gap-2">
               <button onClick={() => { onClose(session.id); setConfirmClose(false); }} className="flex-1 text-sm bg-orange-500 text-white py-1.5 rounded-xl font-medium">確定關閉</button>
-              <button onClick={() => setConfirmClose(false)} className="flex-1 text-sm bg-gray-100 text-gray-600 py-1.5 rounded-xl font-medium">取消</button>
+              <button onClick={() => setConfirmClose(false)} className="flex-1 text-sm bg-gray-100 text-white/60 py-1.5 rounded-xl font-medium">取消</button>
             </div>
           </motion.div>
         )}
@@ -124,7 +124,7 @@ function SessionCard({ session, sessionOrders, onOrder, onProxyOrder, onExtend, 
             <p className="text-sm font-medium text-red-700">重置此團購單？所有 {sessionOrders.length} 筆訂單將被刪除。</p>
             <div className="flex gap-2">
               <button onClick={() => { onReset(session.id); setConfirmReset(false); }} className="flex-1 text-sm bg-red-500 text-white py-1.5 rounded-xl font-medium">確定刪除</button>
-              <button onClick={() => setConfirmReset(false)} className="flex-1 text-sm bg-gray-100 text-gray-600 py-1.5 rounded-xl font-medium">取消</button>
+              <button onClick={() => setConfirmReset(false)} className="flex-1 text-sm bg-gray-100 text-white/60 py-1.5 rounded-xl font-medium">取消</button>
             </div>
           </motion.div>
         )}
@@ -264,7 +264,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
       {/* 返回列 */}
       {step === 'stores' && (
         <button onClick={() => { setStep('search'); setStores([]); }}
-          className="flex items-center gap-1 text-sm text-gray-400 hover:text-orange-500"
+          className="flex items-center gap-1 text-sm text-white/40 hover:text-orange-500"
         >← 返回</button>
       )}
 
@@ -273,11 +273,11 @@ function NidinPicker({ onSelectStore, onCancel }) {
         <div className="space-y-2">
           <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
             placeholder="輸入店家名稱（例：50嵐、迷客夏）"
-            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
             autoFocus
           />
           <div className="flex items-center gap-3 px-1">
-            <span className="text-xs text-gray-400 shrink-0">搜尋範圍</span>
+            <span className="text-xs text-white/40 shrink-0">搜尋範圍</span>
             <input type="range" min="1" max="50" value={radiusKm}
               onChange={(e) => setRadiusKm(Number(e.target.value))}
               className="flex-1 accent-orange-500"
@@ -286,19 +286,19 @@ function NidinPicker({ onSelectStore, onCancel }) {
           </div>
           {query.trim() && (
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {allBrands.length === 0 && <p className="text-xs text-gray-400 text-center py-3">品牌清單載入中...</p>}
+              {allBrands.length === 0 && <p className="text-xs text-white/40 text-center py-3">品牌清單載入中...</p>}
               {allBrands.length > 0 && suggestions.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-3">找不到「{query}」，請換個關鍵字</p>
+                <p className="text-sm text-white/40 text-center py-3">找不到「{query}」，請換個關鍵字</p>
               )}
               {suggestions.map((b) => (
                 <button key={b.brand_code || b.id} onClick={() => selectBrand(b)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-white/10"
                 >
                   {b.image
                     ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
                     : <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-lg shrink-0">🏪</div>
                   }
-                  <div className="font-medium text-gray-800 text-sm">{b.name}</div>
+                  <div className="font-medium text-white text-sm">{b.name}</div>
                 </button>
               ))}
             </div>
@@ -309,15 +309,15 @@ function NidinPicker({ onSelectStore, onCancel }) {
       {/* 分店列表 */}
       {step === 'stores' && (
         <div className="space-y-1.5 max-h-64 overflow-y-auto">
-          {storeLoading && <p className="text-sm text-gray-400 text-center py-4">搜尋附近分店中...</p>}
-          {!storeLoading && stores.length === 0 && <p className="text-sm text-gray-400 text-center py-4">此品牌無可用分店</p>}
+          {storeLoading && <p className="text-sm text-white/40 text-center py-4">搜尋附近分店中...</p>}
+          {!storeLoading && stores.length === 0 && <p className="text-sm text-white/40 text-center py-4">此品牌無可用分店</p>}
           {stores.map((s) => (
             <button key={s.id} onClick={() => selectStore(s)} disabled={storeLoading}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-gray-100 disabled:opacity-50"
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-orange-50 text-left border border-white/10 disabled:opacity-50"
             >
               <div>
-                <div className="font-medium text-gray-800 text-sm">{s.name}</div>
-                {s.address && <div className="text-xs text-gray-400 mt-0.5">{s.address}</div>}
+                <div className="font-medium text-white text-sm">{s.name}</div>
+                {s.address && <div className="text-xs text-white/40 mt-0.5">{s.address}</div>}
               </div>
               {s.distance != null && (
                 <span className="text-xs text-orange-400 font-medium shrink-0 ml-2">{formatDistance(s.distance)}</span>
@@ -327,11 +327,11 @@ function NidinPicker({ onSelectStore, onCancel }) {
         </div>
       )}
 
-      {storeLoading && step !== 'stores' && <p className="text-center text-sm text-gray-400">載入中...</p>}
+      {storeLoading && step !== 'stores' && <p className="text-center text-sm text-white/40">載入中...</p>}
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
 
-      <button onClick={onCancel} className="w-full text-sm text-gray-400 hover:text-gray-600 py-1">取消，改用已儲存店家</button>
+      <button onClick={onCancel} className="w-full text-sm text-white/40 hover:text-white/60 py-1">取消，改用已儲存店家</button>
     </div>
   );
 }
@@ -362,20 +362,20 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
 
   const DurationSelector = () => (
     <div>
-      <label className="block text-sm font-semibold text-gray-600 mb-2">開放點餐時間</label>
+      <label className="block text-sm font-semibold text-white/60 mb-2">開放點餐時間</label>
       <div className="flex flex-wrap gap-2">
         {DURATION_OPTIONS.map((d) => (
           <motion.button key={d} type="button" onClick={() => setDuration(d)}
-            className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${duration === d ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}
+            className={`px-4 py-2 rounded-xl border-2 text-sm font-medium transition-colors ${duration === d ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-white/10 text-white/60 hover:border-orange-300'}`}
             whileTap={{ scale: 0.95 }}
           >{d} 分鐘</motion.button>
         ))}
         <div className="flex items-center gap-1">
           <input type="number" min="1" max="10080" placeholder="自訂"
-            className="w-16 border border-gray-200 rounded-xl p-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="w-16 border border-white/10 rounded-xl p-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-300"
             onChange={(e) => { const v = parseInt(e.target.value, 10); if (v > 0) setDuration(v); }}
           />
-          <span className="text-sm text-gray-500">分鐘</span>
+          <span className="text-sm text-white/50">分鐘</span>
         </div>
       </div>
     </div>
@@ -389,22 +389,22 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.25 }}
     >
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-5">
+      <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-5 space-y-5">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-sm text-gray-500 hover:text-orange-500">← 返回</button>
+          <button onClick={onBack} className="text-sm text-white/50 hover:text-orange-500">← 返回</button>
           <div className="flex items-center gap-2">
             <span className="text-2xl">📋</span>
-            <h2 className="text-lg font-bold text-gray-700">建立新的團購單</h2>
+            <h2 className="text-lg font-bold text-white/80">建立新的團購單</h2>
           </div>
         </div>
 
         {/* 模式切換 */}
         <div className="flex bg-gray-100 rounded-xl p-1">
           <button onClick={() => { setMode('nidin'); setNidinStore(null); }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'nidin' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'nidin' ? 'bg-white/5 text-orange-500 shadow-sm' : 'text-white/50'}`}
           >🛍 從你訂選擇</button>
           <button onClick={() => setMode('saved')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'saved' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-500'}`}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'saved' ? 'bg-white/5 text-orange-500 shadow-sm' : 'text-white/50'}`}
           >📁 已儲存店家</button>
         </div>
 
@@ -421,10 +421,10 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
           <div className="space-y-4">
             <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
               <div>
-                <p className="font-semibold text-gray-800">{nidinStore.name}</p>
-                {nidinStore.phone && <p className="text-xs text-gray-500 mt-0.5">📞 {nidinStore.phone}</p>}
+                <p className="font-semibold text-white">{nidinStore.name}</p>
+                {nidinStore.phone && <p className="text-xs text-white/50 mt-0.5">📞 {nidinStore.phone}</p>}
               </div>
-              <button onClick={() => setNidinStore(null)} className="text-xs text-gray-400 hover:text-red-500">重選</button>
+              <button onClick={() => setNidinStore(null)} className="text-xs text-white/40 hover:text-red-500">重選</button>
             </div>
             <DurationSelector />
             <motion.button
@@ -440,9 +440,9 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
         {mode === 'saved' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2">選擇店家</label>
+              <label className="block text-sm font-semibold text-white/60 mb-2">選擇店家</label>
               <select
-                className="w-full border border-gray-200 rounded-xl p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                className="w-full border border-white/10 rounded-xl p-3 text-white/80 focus:outline-none focus:ring-2 focus:ring-orange-300"
                 value={selectedShopId}
                 onChange={(e) => setSelectedShopId(e.target.value)}
               >
@@ -537,9 +537,9 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
       transition={{ duration: 0.25 }}
     >
       <div className="flex items-center justify-between mb-3">
-        <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-orange-500 transition-colors">← 返回列表</button>
+        <button type="button" onClick={onBack} className="text-sm text-white/50 hover:text-orange-500 transition-colors">← 返回列表</button>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">{shop.name}</span>
+          <span className="text-sm text-white/50">{shop.name}</span>
           <span className={`font-bold ${timeColor}`}>{isExpired ? '已截止' : display}</span>
         </div>
       </div>
@@ -572,18 +572,18 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <motion.div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-            <label className="block text-sm font-semibold text-gray-600 mb-2">你的姓名</label>
+          <motion.div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <label className="block text-sm font-semibold text-white/60 mb-2">你的姓名</label>
             <input type="text" placeholder="請輸入姓名" value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-300" required
+              className="w-full border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-300" required
             />
           </motion.div>
 
-          <motion.div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <label className="block text-sm font-semibold text-gray-600 mb-2">選擇飲料</label>
+          <motion.div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <label className="block text-sm font-semibold text-white/60 mb-2">選擇飲料</label>
             {shop.menu.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">此店家尚無品項，請先至「菜單管理」新增飲料。</p>
+              <p className="text-sm text-white/40 text-center py-4">此店家尚無品項，請先至「菜單管理」新增飲料。</p>
             ) : (
               <>
                 {shop.menu.length > 6 && (
@@ -592,16 +592,16 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                     placeholder="搜尋飲料名稱..."
                     value={drinkSearch}
                     onChange={(e) => setDrinkSearch(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
                 )}
                 <div className="grid grid-cols-2 gap-2">
                   {filteredMenu.map((item) => (
                     <motion.button type="button" key={item.id} onClick={() => handleItemSelect(item)}
-                      className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}
+                      className={`p-3 rounded-xl border-2 text-left transition-colors ${selectedItem?.id === item.id ? 'border-orange-500 bg-orange-50' : 'border-white/10 hover:border-orange-300'}`}
                       whileTap={{ scale: 0.97 }}
                     >
-                      <div className="font-medium text-gray-800 text-sm">{item.name}</div>
+                      <div className="font-medium text-white text-sm">{item.name}</div>
                       <div className="text-xs text-orange-500">
                         NT${item.price}
                         {item.sizes.length > 1 && item.sizes.slice(1).map((s) => s.add > 0 ? ` / ${s.label} +${s.add}` : '').join('')}
@@ -609,7 +609,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                     </motion.button>
                   ))}
                   {filteredMenu.length === 0 && (
-                    <p className="col-span-2 text-center text-sm text-gray-400 py-4">找不到「{drinkSearch}」</p>
+                    <p className="col-span-2 text-center text-sm text-white/40 py-4">找不到「{drinkSearch}」</p>
                   )}
                 </div>
               </>
@@ -626,12 +626,12 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                 ref={(el) => { optionsDivRef.current = el; }}
               >
                 {selectedItem.sizes.length > 1 && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                    <label className="block text-sm font-semibold text-gray-600 mb-2">尺寸</label>
+                  <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4">
+                    <label className="block text-sm font-semibold text-white/60 mb-2">尺寸</label>
                     <div className="flex gap-2">
                       {selectedItem.sizes.map((s) => (
                         <motion.button type="button" key={s.label} onClick={() => setSize(s.label)}
-                          className={`flex-1 py-2 rounded-xl border-2 font-medium transition-colors ${size === s.label ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}
+                          className={`flex-1 py-2 rounded-xl border-2 font-medium transition-colors ${size === s.label ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-white/10 text-white/60 hover:border-orange-300'}`}
                           whileTap={{ scale: 0.97 }}
                         >{s.label} {s.add > 0 ? `+${s.add}` : ''}</motion.button>
                       ))}
@@ -639,51 +639,51 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                   </div>
                 )}
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                  <label className="block text-sm font-semibold text-gray-600 mb-2">甜度</label>
+                <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4">
+                  <label className="block text-sm font-semibold text-white/60 mb-2">甜度</label>
                   <div className="flex flex-wrap gap-2">
                     {shop.options.sugar.map((s) => (
                       <motion.button type="button" key={s} onClick={() => setSugar(s)}
-                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${sugar === s ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-300 text-gray-600 hover:border-orange-400'}`}
+                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${sugar === s ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-300 text-white/60 hover:border-orange-400'}`}
                         whileTap={{ scale: 0.95 }}
                       >{s}</motion.button>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                  <label className="block text-sm font-semibold text-gray-600 mb-2">冰塊</label>
+                <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4">
+                  <label className="block text-sm font-semibold text-white/60 mb-2">冰塊</label>
                   <div className="flex flex-wrap gap-2">
                     {shop.options.ice.map((ic) => (
                       <motion.button type="button" key={ic} onClick={() => setIce(ic)}
-                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${ice === ic ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300 text-gray-600 hover:border-blue-400'}`}
+                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${ice === ic ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300 text-white/60 hover:border-blue-400'}`}
                         whileTap={{ scale: 0.95 }}
                       >{ic}</motion.button>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                  <label className="block text-sm font-semibold text-gray-600 mb-2">加料（可多選）</label>
+                <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4">
+                  <label className="block text-sm font-semibold text-white/60 mb-2">加料（可多選）</label>
                   <div className="flex flex-wrap gap-2">
                     {shop.options.toppings.map((t) => (
                       <motion.button type="button" key={t} onClick={() => toggleTopping(t)}
-                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500 text-white' : 'border-gray-300 text-gray-600 hover:border-green-400'}`}
+                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500 text-white' : 'border-gray-300 text-white/60 hover:border-green-400'}`}
                         whileTap={{ scale: 0.95 }}
                       >{t}</motion.button>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                  <label className="block text-sm font-semibold text-gray-600 mb-2">備註（選填）</label>
+                <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4">
+                  <label className="block text-sm font-semibold text-white/60 mb-2">備註（選填）</label>
                   <input type="text" placeholder="其他特殊需求..." value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    className="w-full border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+                <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4 space-y-3">
                   <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-sm text-orange-800">
                     <span className="font-semibold">確認：</span>{orderSummary}
                     <span className="font-bold ml-2 text-orange-600">NT${calcPrice()}</span>
@@ -782,7 +782,7 @@ export default function OrderForm({
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white rounded-3xl px-12 py-10 text-center shadow-2xl"
+              className="bg-white/5 rounded-3xl px-12 py-10 text-center shadow-2xl"
               initial={{ scale: 0.4, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -793,8 +793,8 @@ export default function OrderForm({
                 animate={{ rotate: [0, -15, 15, -8, 8, 0], scale: [1, 1.15, 1] }}
                 transition={{ delay: 0.15, duration: 0.6 }}
               >✅</motion.div>
-              <p className="text-2xl font-bold text-gray-800">訂單送出！</p>
-              <p className="text-gray-500 mt-2 text-sm">{isProxy ? '準備代點下一位...' : '下一位可以開始點了'}</p>
+              <p className="text-2xl font-bold text-white">訂單送出！</p>
+              <p className="text-white/50 mt-2 text-sm">{isProxy ? '準備代點下一位...' : '下一位可以開始點了'}</p>
             </motion.div>
           </motion.div>
         )}
@@ -802,14 +802,14 @@ export default function OrderForm({
 
       {activeSessions.length === 0 ? (
         isLeader ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-white/50">
             <motion.div
               className="text-5xl mb-4"
               animate={{ y: [0, -8, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
             >📋</motion.div>
             <p className="font-medium">尚無進行中的團購單</p>
-            <p className="text-sm mt-1 text-gray-400">點擊下方按鈕建立</p>
+            <p className="text-sm mt-1 text-white/40">點擊下方按鈕建立</p>
           </div>
         ) : (
           <div className="text-center py-16">
@@ -818,8 +818,8 @@ export default function OrderForm({
               animate={{ y: [0, -10, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
             >🧋</motion.div>
-            <p className="text-gray-600 font-medium text-lg">等待團主建立團購單</p>
-            <p className="text-gray-400 text-sm mt-2">請稍後，團主尚未開始本次點餐</p>
+            <p className="text-white/60 font-medium text-lg">等待團主建立團購單</p>
+            <p className="text-white/40 text-sm mt-2">請稍後，團主尚未開始本次點餐</p>
           </div>
         )
       ) : (
