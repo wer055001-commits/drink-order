@@ -196,13 +196,18 @@ function NidinPicker({ onSelectStore, onCancel }) {
           result = data.stores || data.store_list || [];
         }
 
-        // 方法2：附近全部，前端過濾品牌名
+        // 方法2：附近全部店家，前端過濾品牌名
         if (result.length === 0) {
-          const brandName = brand.name?.toLowerCase() || '';
-          result = nearbyStores.filter((s) =>
-            s.brand_name?.toLowerCase().includes(brandName) ||
-            s.name?.toLowerCase().includes(brandName)
-          );
+          try {
+            const res2 = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80`);
+            const data2 = await res2.json();
+            const allNearby = data2.stores || data2.store_list || [];
+            const brandName = brand.name?.toLowerCase() || '';
+            result = allNearby.filter((s) =>
+              s.brand_name?.toLowerCase().includes(brandName) ||
+              s.name?.toLowerCase().includes(brandName)
+            );
+          } catch {}
         }
 
         // 方法3：全台清單 + Haversine 篩選
