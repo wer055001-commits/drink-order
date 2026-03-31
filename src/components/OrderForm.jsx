@@ -516,7 +516,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
       size,
       sugar,
       ice,
-      toppings,
+      toppings: [],
       price: calcPrice(),
       note: note.trim(),
     });
@@ -525,7 +525,7 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
   const timeColor = isExpired ? 'text-red-400' : secondsLeft <= 120 ? 'text-red-500' : secondsLeft <= 300 ? 'text-amber-500' : 'text-green-400';
 
   const orderSummary = selectedItem
-    ? `${selectedItem.name}（${size}）・${sugar}・${ice}${toppings.length ? '・+' + toppings.join('、') : ''}${note ? '・' + note : ''}`
+    ? `${selectedItem.name}（${size}）・${sugar}・${ice}${note ? '・' + note : ''}`
     : null;
 
   return (
@@ -664,22 +664,10 @@ function OrderFormContent({ session, shop, onAddOrder, onBack, savedName, isProx
                 </div>
 
                 <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4">
-                  <label className="block text-sm font-semibold text-white/60 mb-2">加料（可多選）</label>
-                  <div className="flex flex-wrap gap-2">
-                    {shop.options.toppings.map((t) => (
-                      <motion.button type="button" key={t} onClick={() => toggleTopping(t)}
-                        className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500/100 text-white' : 'border-white/15 text-white/60 hover:border-green-400'}`}
-                        whileTap={{ scale: 0.95 }}
-                      >{t}</motion.button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-4">
                   <label className="block text-sm font-semibold text-white/60 mb-2">備註（選填）</label>
-                  <input type="text" placeholder="其他特殊需求..." value={note}
+                  <input type="text" placeholder="加料或其他需求（例：加珍珠、少冰）" value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    className="dark-input w-full"
                   />
                 </div>
 

@@ -23,7 +23,7 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
 
   function handleSave() {
     if (!selectedItem) return;
-    onSave({ drink: selectedItem.name, size, sugar, ice, toppings, price: calcPrice(), note: note.trim() });
+    onSave({ drink: selectedItem.name, size, sugar, ice, toppings: [], price: calcPrice(), note: note.trim() });
     onClose();
   }
 
@@ -98,27 +98,15 @@ function EditOrderModal({ order, shop, onSave, onClose }) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-white/60 mb-2">加料（可多選）</label>
-          <div className="flex flex-wrap gap-2">
-            {shop.options.toppings.map((t) => (
-              <button type="button" key={t} onClick={() => toggleTopping(t)}
-                className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ${toppings.includes(t) ? 'border-green-500 bg-green-500/100 text-white' : 'border-white/15 text-white/60'}`}
-              >{t}</button>
-            ))}
-          </div>
-        </div>
-
-        <div>
           <label className="block text-sm font-semibold text-white/60 mb-2">備註（選填）</label>
-          <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="其他特殊需求..."
-            className="w-full border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+          <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="加料或其他需求（例：加珍珠、少冰）"
+            className="dark-input w-full"
           />
         </div>
 
         {selectedItem && (
           <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-3 py-2 text-sm text-orange-300">
-            {selectedItem.name}（{size}）・{sugar}・{ice}
-            {toppings.length > 0 && `・+${toppings.join('、')}`}
+            {selectedItem.name}（{size}）・{sugar}・{ice}{note ? '・' + note : ''}
             <span className="font-bold ml-2">NT${calcPrice()}</span>
           </div>
         )}
@@ -141,7 +129,7 @@ function buildCopyText(orders, session) {
   const byName = {};
   orders.forEach((o) => {
     if (!byName[o.name]) byName[o.name] = [];
-    const drink = `${o.drink}(${o.size}) ${o.sugar} ${o.ice}${o.toppings.length ? ' +' + o.toppings.join('+') : ''}`;
+    const drink = `${o.drink}(${o.size}) ${o.sugar} ${o.ice}${o.note ? ' ' + o.note : ''}`;
     byName[o.name].push({ drink, price: o.price });
   });
   Object.entries(byName).forEach(([name, items]) => {
@@ -171,7 +159,7 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
   const displayOrders = filterMine && myName ? orders.filter((o) => o.name === myName) : orders;
   const total = displayOrders.reduce((sum, o) => sum + o.price, 0);
   const summary = displayOrders.reduce((acc, o) => {
-    const key = `${o.drink}(${o.size}) ${o.sugar} ${o.ice}${o.toppings.length ? ' +' + o.toppings.join('+') : ''}`;
+    const key = `${o.drink}(${o.size}) ${o.sugar} ${o.ice}${o.note ? ' ' + o.note : ''}`;
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
@@ -349,7 +337,6 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
                     <div className="text-white/80">{order.drink}（{order.size}）</div>
                     <div className="text-sm text-white/50 mt-0.5">
                       {order.sugar}・{order.ice}
-                      {order.toppings.length > 0 && `・+${order.toppings.join('、')}`}
                       {order.note && `・${order.note}`}
                     </div>
                   </div>
@@ -544,7 +531,7 @@ function UserHistorySection({ pastSessions, getSessionOrders, myName }) {
                     <div className="border-t px-3 py-3 bg-white/5 space-y-1.5">
                       {s.myOrders.map((o) => (
                         <div key={o.id} className="flex justify-between text-sm text-white/60">
-                          <span>{o.drink}（{o.size}）{o.sugar}・{o.ice}{o.toppings.length ? ` +${o.toppings.join('+')}` : ''}</span>
+                          <span>{o.drink}（{o.size}）{o.sugar}・{o.ice}{o.note ? ` ${o.note}` : ''}</span>
                           <span className="text-orange-500 font-medium ml-2">NT${o.price}</span>
                         </div>
                       ))}
