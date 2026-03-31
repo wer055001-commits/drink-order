@@ -31,7 +31,7 @@ function NidinImportModal({ onImport, onClose }) {
             return DRINK_TAGS.some((t) => tags.includes(t) || (b.name || '').includes(t));
           })
           .filter((b) => {
-            const key = b.brand_code || b.id;
+            const key = b.name;
             if (seen.has(key)) return false;
             seen.add(key); return true;
           });
