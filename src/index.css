@@ -158,6 +158,23 @@ body::after {
 .btn-gradient:hover { background-position: right center; box-shadow: 0 6px 28px rgba(167,139,250,0.4); transform: translateY(-1px); }
 .btn-gradient:active { transform: translateY(0); }
 
+/* 輸入框 */
+.dark-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 14px;
+  color: var(--input-text);
+  padding: 12px 16px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dark-input::placeholder { color: var(--input-placeholder); }
+.dark-input:focus {
+  border-color: rgba(167,139,250,0.5);
+  box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+}
+
 .pill {
   border-radius: 999px; padding: 6px 14px;
   font-size: 13px; font-weight: 600;
