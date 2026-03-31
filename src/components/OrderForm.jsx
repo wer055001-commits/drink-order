@@ -169,15 +169,52 @@ function NidinPicker({ onSelectStore, onCancel }) {
       })
       .catch(() => {});
 
-    // 附近飲料店
+    // 附近飲料店（多種方式嘗試）
     getLocation()
-      .then((loc) => {
+      .then(async (loc) => {
         locationRef.current = loc;
-        return fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=50&src_type=3`);
-      })
-      .then((r) => r.json())
-      .then((data) => {
-        const all = data.stores || data.store_list || [];
+
+        // 嘗試1：src_type=3
+        let all = [];
+        try {
+          const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=50&src_type=3`);
+          const data = await res.json();
+          all = data.stores || data.store_list || [];
+        } catch {}
+
+        // 嘗試2：不帶 src_type（抓全部附近店家）
+        if (all.length === 0) {
+          try {
+            const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80`);
+            const data = await res.json();
+            all = data.stores || data.store_list || [];
+          } catch {}
+        }
+
+        // 嘗試3：用 search/brand API 搜飲料
+        if (all.length === 0) {
+          try {
+            const res = await fetch('/api/nidin?path=search/brand', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, keyword: '飲料', shopper_id: null, src_type: 0, page: 1, count: 30 }),
+            });
+            const data = await res.json();
+            const brands = data.brand?.list || [];
+            // 把品牌轉換成可選的店家格式
+            all = brands.map((b) => ({
+              id: b.id,
+              name: b.name,
+              brand_name: b.name,
+              brand_code: b.brand_code,
+              address: '',
+              distance: b.distance,
+              image: b.image,
+              _isBrand: true,
+            }));
+          } catch {}
+        }
+
         setNearbyStores(all);
       })
       .catch(() => {})
@@ -255,6 +292,11 @@ function NidinPicker({ onSelectStore, onCancel }) {
   }
 
   async function selectStore(store, brandName) {
+    // 如果是品牌格式（從附近列表來的），走 selectBrand 流程
+    if (store._isBrand) {
+      selectBrand({ id: store.id, name: store.name, brand_code: store.brand_code });
+      return;
+    }
     setStoreLoading(true); setError('');
     try {
       const res = await fetch(`/api/nidin?path=store/${store.id}/onShelfMenu`);
