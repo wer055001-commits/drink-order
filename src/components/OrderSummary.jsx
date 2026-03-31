@@ -222,8 +222,12 @@ function SessionSummary({ session, orders, shop, onRemoveOrder, onUpdateOrder, o
               </div>
 
               {/* 訂單預覽 */}
-              <div className="rounded-2xl px-4 py-3 max-h-52 overflow-y-auto" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid var(--border)' }}>
-                <pre className="text-sm whitespace-pre-wrap font-sans" style={{ color: 'var(--text)' }}>{orderText}</pre>
+              <div className="rounded-2xl px-4 py-3 max-h-52 overflow-y-auto" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                {orderText ? (
+                  <pre className="text-sm whitespace-pre-wrap font-sans" style={{ color: 'var(--text)' }}>{orderText}</pre>
+                ) : (
+                  <p className="text-sm text-center py-2" style={{ color: 'var(--text-muted)' }}>目前沒有訂單</p>
+                )}
               </div>
 
               <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>結單後成員將無法繼續點餐</p>
