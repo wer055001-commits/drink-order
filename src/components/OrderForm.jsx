@@ -338,32 +338,22 @@ function NidinPicker({ onSelectStore, onCancel }) {
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
 
-      <button onClick={onCancel} className="w-full text-sm text-white/40 hover:text-white/60 py-1">取消，改用已儲存店家</button>
+      <button onClick={onCancel} className="w-full text-sm py-1 cursor-pointer" style={{ color: 'var(--text-muted)' }}>取消</button>
     </div>
   );
 }
 
 // ── 建立新團購單表單（團主/管理者）──────────────────────────────
 function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onBack }) {
-  const [mode, setMode] = useState('nidin');   // 'nidin' | 'saved'
-  const [selectedShopId, setSelectedShopId] = useState(shops[0]?.id || '');
   const [duration, setDuration] = useState(30);
-  const [nidinStore, setNidinStore] = useState(null);  // 已選好的你訂店家
+  const [nidinStore, setNidinStore] = useState(null);
   const [creating, setCreating] = useState(false);
-
-  const selectedShop = shops.find((s) => s.id === selectedShopId);
 
   async function handleCreateFromNidin() {
     if (!nidinStore || creating) return;
     setCreating(true);
     await onStartSessionFromNidin(nidinStore, duration);
     setCreating(false);
-    onBack();
-  }
-
-  function handleCreateFromSaved() {
-    if (!selectedShopId) return;
-    onStartSession(selectedShopId, duration);
     onBack();
   }
 
@@ -405,26 +395,16 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
           </div>
         </div>
 
-        {/* 模式切換 */}
-        <div className="flex bg-white/5 rounded-xl p-1">
-          <button onClick={() => { setMode('nidin'); setNidinStore(null); }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'nidin' ? 'bg-white/5 text-orange-500 shadow-sm' : 'text-white/50'}`}
-          >🛍 從你訂選擇</button>
-          <button onClick={() => setMode('saved')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mode === 'saved' ? 'bg-white/5 text-orange-500 shadow-sm' : 'text-white/50'}`}
-          >📁 已儲存店家</button>
-        </div>
-
-        {/* 你訂搜尋模式 */}
-        {mode === 'nidin' && !nidinStore && (
+        {/* 搜尋店家 */}
+        {!nidinStore && (
           <NidinPicker
             onSelectStore={setNidinStore}
-            onCancel={() => setMode('saved')}
+            onCancel={onBack}
           />
         )}
 
-        {/* 你訂已選好店家 */}
-        {mode === 'nidin' && nidinStore && (
+        {/* 已選好店家 */}
+        {nidinStore && (
           <div className="space-y-4">
             <div className="flex items-center justify-between bg-orange-500/10 border border-orange-500/20 rounded-2xl px-4 py-3">
               <div>
@@ -443,32 +423,6 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
           </div>
         )}
 
-        {/* 已儲存店家模式 */}
-        {mode === 'saved' && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-white/60 mb-2">選擇店家</label>
-              <select
-                className="w-full border border-white/10 rounded-xl p-3 text-white/80 focus:outline-none focus:ring-2 focus:ring-orange-300"
-                value={selectedShopId}
-                onChange={(e) => setSelectedShopId(e.target.value)}
-              >
-                {shops.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}（{s.menu.length} 個品項）</option>
-                ))}
-              </select>
-              {selectedShop?.menu.length === 0 && (
-                <p className="text-xs text-amber-600 mt-1.5">⚠️ 此店家尚無品項</p>
-              )}
-            </div>
-            <DurationSelector />
-            <motion.button
-              onClick={handleCreateFromSaved}
-              className="w-full bg-orange-500/100 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
-              whileTap={{ scale: 0.98 }}
-            >建立團購單（限時 {duration} 分鐘）</motion.button>
-          </div>
-        )}
       </div>
     </motion.div>
   );
