@@ -265,8 +265,16 @@ export function useStore() {
 
   // 從你訂直接開團（自動建店 + 開 session）
   async function importAndStartSession({ name, phone, nidinStoreId, menuData }, durationMinutes = 30) {
+    console.log('[開團] 開始', { name, nidinStoreId, durationMinutes });
     const shopId = `nidin-${nidinStoreId}`;
-    const menu = parseNidinMenu(menuData).map((item, i) => ({ ...item, id: `item-${Date.now()}-${i}` }));
+    let menu = [];
+    try {
+      menu = parseNidinMenu(menuData).map((item, i) => ({ ...item, id: `item-${Date.now()}-${i}` }));
+      console.log('[開團] 菜單解析完成，品項數:', menu.length);
+    } catch (e) {
+      console.error('[開團] 菜單解析失敗:', e);
+    }
+    console.log('[開團] 寫入 shops...');
     await setDoc(doc(db, 'shops', shopId), {
       id: shopId,
       name,
@@ -274,7 +282,7 @@ export function useStore() {
       menu,
       options: DEFAULT_OPTIONS,
     });
-    // 直接帶入 name，避免 Firebase 非同步尚未更新 shops state 導致 shopName 空白
+    console.log('[開團] shops 寫入完成，開始建 session...');
     const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
     const ref = await addDoc(collection(db, 'sessions'), {
       shopId,
@@ -285,6 +293,7 @@ export function useStore() {
       createdAt: new Date().toISOString(),
       expiresAt,
     });
+    console.log('[開團] 完成 session:', ref.id);
     return ref.id;
   }
 

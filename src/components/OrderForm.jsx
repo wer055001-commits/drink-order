@@ -358,9 +358,15 @@ function CreateSessionForm({ shops, onStartSession, onStartSessionFromNidin, onB
   async function handleCreateFromNidin() {
     if (!nidinStore || creating) return;
     setCreating(true);
-    await onStartSessionFromNidin(nidinStore, duration);
-    setCreating(false);
-    onBack();
+    try {
+      await onStartSessionFromNidin(nidinStore, duration);
+      onBack();
+    } catch (e) {
+      console.error('開團失敗:', e);
+      alert('開團失敗：' + (e.message || '請再試一次'));
+    } finally {
+      setCreating(false);
+    }
   }
 
   const DurationSelector = () => (
