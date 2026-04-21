@@ -278,9 +278,7 @@ input[type="range"]::-webkit-slider-thumb {
 [data-theme="light"] main {
   color: #2a3038;
 }
-[data-theme="light"] .glass-card .text-white,
-[data-theme="light"] .glow-card .text-white,
-[data-theme="light"] main .text-white:not(button .text-white) { color: #2a3038 !important; }
+/* 不主動覆蓋 text-white 本身，保留按鈕上的白字 */
 [data-theme="light"] .glass-card .text-white\/80,
 [data-theme="light"] main .text-white\/80 { color: #2a3038 !important; }
 [data-theme="light"] .glass-card .text-white\/60,
