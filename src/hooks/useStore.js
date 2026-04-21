@@ -46,11 +46,9 @@ export function useStore() {
         const batch = writeBatch(db);
         DEFAULT_SHOPS.forEach((s) => batch.set(doc(db, 'shops', s.id), s));
         await batch.commit();
-        // listener 會自動再觸發一次拿到資料
-      } else if (!snap.empty) {
-        setShops(snap.docs.map((d) => ({ ...d.data(), id: d.id })));
-        tick('shops');
       }
+      setShops(snap.docs.map((d) => ({ ...d.data(), id: d.id })));
+      tick('shops');
     }));
 
     // ── 進行中的團購單 ────────────────────────────────────────
