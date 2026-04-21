@@ -38,6 +38,9 @@ export function useStore() {
   useEffect(() => {
     const unsubs = [];
 
+    // 保險：最多等 8 秒就結束載入畫面
+    const safetyTimeout = setTimeout(() => setLoading(false), 8000);
+
     // ── 店家 ─────────────────────────────────────────────────
     const seeding = { done: false };
     unsubs.push(onSnapshot(collection(db, 'shops'), async (snap) => {
@@ -95,7 +98,7 @@ export function useStore() {
       setLeaderCodeText(snap.exists() ? (snap.data().code || '1212') : '1212');
     }));
 
-    return () => unsubs.forEach((u) => u());
+    return () => { clearTimeout(safetyTimeout); unsubs.forEach((u) => u()); };
   }, []);
 
   // ── 計算值 ──────────────────────────────────────────────────
