@@ -35,7 +35,7 @@ export default function ProfilePage({ getUserName, pastSessions, getSessionOrder
       animate={{ opacity: 1, y: 0 }}
     >
       {/* 個人資訊卡 */}
-      <div className="rounded-2xl p-6 text-white" style={{ background: 'var(--gradient)', boxShadow: '0 4px 20px rgba(167,139,250,0.25)' }}>
+      <div className="rounded-2xl p-6 text-white" style={{ background: 'var(--gradient-solid)', boxShadow: '0 4px 20px rgba(var(--accent-rgb),0.25)' }}>
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold">
             {myName.slice(0, 1)}

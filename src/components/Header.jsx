@@ -26,7 +26,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #a78bfa, #f472b6)', boxShadow: '0 2px 12px rgba(167,139,250,0.3)' }}
+              style={{ background: 'var(--gradient-solid)', boxShadow: '0 2px 12px rgba(var(--accent-rgb), 0.3)' }}
             >
               <Coffee className="w-[18px] h-[18px] text-white" />
             </div>

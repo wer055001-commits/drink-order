@@ -8,16 +8,16 @@ const ROLES = [
     icon: ClipboardList,
     title: '團主',
     desc: '開團、管理訂單、結單分享',
-    gradient: 'from-violet-500 to-fuchsia-500',
-    glow: 'rgba(139,92,246,0.3)',
+    gradient: 'from-stone-400 to-neutral-500',
+    glow: 'rgba(156,133,120,0.3)',
   },
   {
     key: 'user',
     icon: Coffee,
     title: '使用者',
     desc: '點飲料、查看訂單',
-    gradient: 'from-orange-400 to-pink-500',
-    glow: 'rgba(251,146,60,0.3)',
+    gradient: 'from-slate-400 to-stone-400',
+    glow: 'rgba(125,139,136,0.3)',
   },
 ];
 
@@ -83,8 +83,8 @@ export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme, 
           <motion.div
             className="w-24 h-24 rounded-3xl mx-auto mb-6 flex items-center justify-center cursor-pointer select-none relative"
             style={{
-              background: 'linear-gradient(135deg, #a78bfa, #f472b6, #fb923c)',
-              boxShadow: '0 8px 40px rgba(167,139,250,0.35)',
+              background: 'var(--gradient)',
+              boxShadow: '0 8px 40px rgba(var(--accent-rgb),0.35)',
             }}
             animate={{ rotate: [0, -4, 4, -2, 2, 0] }}
             transition={{ delay: 0.5, duration: 0.8 }}

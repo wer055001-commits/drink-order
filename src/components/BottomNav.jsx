@@ -48,7 +48,7 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
                   {isActive ? (
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ background: 'linear-gradient(135deg, #a78bfa, #f472b6)', boxShadow: '0 4px 16px rgba(167,139,250,0.35)' }}
+                      style={{ background: 'var(--gradient-solid)', boxShadow: '0 4px 16px rgba(var(--accent-rgb), 0.35)' }}
                     >
                       <Icon className="w-5 h-5 text-white" strokeWidth={2.2} />
                     </div>
@@ -61,7 +61,7 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
                 {item.key === 'summary' && ordersCount > 0 && (role === 'leader' || role === 'admin') && (
                   <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
                     className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center px-1 rounded-full text-[10px] font-bold text-white"
-                    style={{ background: 'linear-gradient(135deg, #f472b6, #fb923c)' }}
+                    style={{ background: 'var(--gradient-solid)' }}
                   >{ordersCount > 9 ? '9+' : ordersCount}</motion.span>
                 )}
               </div>
