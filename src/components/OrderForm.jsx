@@ -145,7 +145,10 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [storeLoading, setStoreLoading] = useState(false);
   const [error, setError] = useState('');
   const [radiusKm, setRadiusKm] = useState(10);
+  const [debugInfo, setDebugInfo] = useState([]);
   const locationRef = useRef(null);
+
+  const dbg = (msg) => setDebugInfo((p) => [...p, msg]);
 
   // 掛載時：取得定位 + 品牌清單 + 附近品牌
   useEffect(() => {
@@ -172,6 +175,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
     getLocation()
       .then(async (loc) => {
         locationRef.current = loc;
+        dbg(`✓ 定位 lat:${loc.lat.toFixed(3)} lng:${loc.lng.toFixed(3)}`);
         const brandMap = new Map();
 
         const addFromStores = (stores) => {
@@ -199,16 +203,23 @@ function NidinPicker({ onSelectStore, onCancel }) {
         try {
           const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80`);
           const data = await res.json();
+          const keys = Object.keys(data).join(',');
+          const n = (data.stores || data.store_list || []).length;
+          dbg(`方法1 keys:${keys} 店數:${n}`);
           addFromStores(data.stores || data.store_list || []);
-        } catch {}
+          dbg(`方法1 後 brandMap 大小:${brandMap.size}`);
+        } catch (e) { dbg(`方法1 錯誤:${e.message}`); }
 
         // 方法2：listByPositionNew + src_type=3（飲料）
         if (brandMap.size === 0) {
           try {
             const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80&src_type=3`);
             const data = await res.json();
+            const n = (data.stores || data.store_list || []).length;
+            dbg(`方法2 店數:${n}`);
             addFromStores(data.stores || data.store_list || []);
-          } catch {}
+            dbg(`方法2 後 brandMap 大小:${brandMap.size}`);
+          } catch (e) { dbg(`方法2 錯誤:${e.message}`); }
         }
 
         // 方法3：search/brand 搜飲料關鍵字
@@ -223,6 +234,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
               });
               const data = await res.json();
               const list = data.brand?.list || [];
+              dbg(`方法3-${kw} 品牌數:${list.length}`);
               list.forEach((b) => {
                 if (!isDrinkBrand(b.name, (b.meal_tag_info || []).map((t) => t.name).join(''))) return;
                 const dist = b.distance ?? 999999;
@@ -236,14 +248,18 @@ function NidinPicker({ onSelectStore, onCancel }) {
                   });
                 }
               });
-            } catch {}
+            } catch (e) { dbg(`方法3-${kw} 錯誤:${e.message}`); }
           }
         }
 
-        const sorted = [...brandMap.values()]
-          .filter((b) => b.distance <= 15000)
-          .sort((a, b) => a.distance - b.distance)
+        dbg(`總 brandMap:${brandMap.size}`);
+        const beforeFilter = [...brandMap.values()].sort((a,b) => a.distance - b.distance);
+        dbg(`最近 3 筆距離: ${beforeFilter.slice(0,3).map(b => `${b.name}(${(b.distance/1000).toFixed(1)}km)`).join(', ')}`);
+
+        const sorted = beforeFilter
+          .filter((b) => b.distance <= 30000)
           .slice(0, 10);
+        dbg(`30km 內最後:${sorted.length} 筆`);
         setNearbyBrands(sorted);
       })
       .catch(() => {})
@@ -370,7 +386,12 @@ function NidinPicker({ onSelectStore, onCancel }) {
               </p>
               {nearbyLoading && <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>定位中，搜尋附近品牌...</p>}
               {!nearbyLoading && nearbyBrands.length === 0 && (
-                <p className="text-sm text-center py-3" style={{ color: 'var(--text-muted)' }}>附近沒找到飲料店</p>
+                <div className="py-3 px-2">
+                  <p className="text-sm text-center mb-2" style={{ color: 'var(--text-muted)' }}>附近沒找到飲料店</p>
+                  <div className="text-[10px] font-mono p-2 rounded" style={{ background: 'var(--pill-bg)', color: 'var(--text-muted)' }}>
+                    {debugInfo.map((line, i) => <div key={i}>{line}</div>)}
+                  </div>
+                </div>
               )}
               <div className="max-h-72 overflow-y-auto space-y-1">
                 {nearbyBrands.map((b) => {
