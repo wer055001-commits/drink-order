@@ -147,6 +147,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [radiusKm, setRadiusKm] = useState(10);
   const [debugInfo, setDebugInfo] = useState([]);
   const locationRef = useRef(null);
+  const allBrandsRef = useRef([]);
 
   const dbg = (msg) => setDebugInfo((p) => [...p, msg]);
 
@@ -168,6 +169,7 @@ function NidinPicker({ onSelectStore, onCancel }) {
             seen.add(b.name); return true;
           });
         setAllBrands(deduped);
+        allBrandsRef.current = deduped;
       })
       .catch(() => {});
 
@@ -222,29 +224,23 @@ function NidinPicker({ onSelectStore, onCancel }) {
           } catch (e) { dbg(`方法2 錯誤:${e.message}`); }
         }
 
-        // 方法3：從 search/brand 拿到的品牌，併發查 stores 算距離
+        // 方法3：從熱門連鎖品牌中查各自分店，算最近距離
         if (brandMap.size < 3) {
-          const searchBrands = [];
-          const keywords = ['飲料', '茶', '咖啡'];
-          for (const kw of keywords) {
-            try {
-              const res = await fetch('/api/nidin?path=search/brand', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, keyword: kw, shopper_id: null, src_type: 0, page: 1, count: 20 }),
-              });
-              const data = await res.json();
-              (data.brand?.list || []).forEach((b) => {
-                if (!isDrinkBrand(b.name, (b.meal_tag_info || []).map((t) => t.name).join(''))) return;
-                if (!searchBrands.find((x) => x.name === b.name)) searchBrands.push(b);
-              });
-            } catch {}
+          // 等 allBrands 載入
+          let brands = [];
+          for (let i = 0; i < 10 && brands.length === 0; i++) {
+            if (allBrandsRef.current.length > 0) { brands = allBrandsRef.current; break; }
+            await new Promise((r) => setTimeout(r, 200));
           }
-          dbg(`方法3 取得 ${searchBrands.length} 個品牌，開始併發查分店`);
 
-          // 併發查每個品牌的分店（前 20 個）
+          // 熱門連鎖品牌優先（有大量分店，最可能找到近的）
+          const POPULAR = ['50嵐', '迷客夏', '清心福全', '茶湯會', 'CoCo', '鮮茶道', '大苑子', '可不可', '得正', '老虎堂', '龜記', 'Comebuy', '一沐日', '拾覺', '山山來茶', '八曜和茶', '圓石', '春水堂', '茶之魔手', '麻古茶坊', '水巷茶弄', '一點點', '歇腳亭'];
+
+          const candidates = brands.filter((b) => POPULAR.some((p) => b.name.includes(p) || p.includes(b.name)));
+          dbg(`方法3 熱門品牌配對 ${candidates.length} 個`);
+
           const results = await Promise.allSettled(
-            searchBrands.slice(0, 20).map(async (b) => {
+            candidates.map(async (b) => {
               const res = await fetch(`/api/nidin?path=brand/${b.id}/stores`);
               const d = await res.json();
               const ss = d.stores || [];
