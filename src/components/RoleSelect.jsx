@@ -7,7 +7,7 @@ const ROLES = [
     key: 'leader',
     icon: ClipboardList,
     title: '團主',
-    desc: '開團　管理訂單　結單分享',
+    desc: '開團、管理訂單、結單分享',
     gradient: 'from-amber-600 to-yellow-700',
     glow: 'rgba(180,140,70,0.25)',
   },
@@ -15,7 +15,7 @@ const ROLES = [
     key: 'user',
     icon: Coffee,
     title: '使用者',
-    desc: '點飲料　查看訂單',
+    desc: '點飲料、查看訂單',
     gradient: 'from-stone-700 to-neutral-800',
     glow: 'rgba(60,50,40,0.25)',
   },
@@ -91,7 +91,7 @@ export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme, 
             whileTap={{ scale: 0.92 }}
             onClick={handleLogoTap}
           >
-            <Coffee className="w-12 h-12 text-[color:var(--text)]" strokeWidth={1.8} />
+            <Coffee className="w-12 h-12 text-white" strokeWidth={1.8} />
           </motion.div>
           <h1 className="text-4xl font-black tracking-tight" style={{ color: 'var(--text)' }}>{siteTitle || '麻將飲料團'}</h1>
           <p className="mt-3 text-sm font-medium" style={{ color: 'var(--text-muted)' }}>選擇身分，開始點餐</p>
@@ -116,14 +116,14 @@ export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme, 
                     className={`w-14 h-14 bg-gradient-to-br ${r.gradient} rounded-2xl flex items-center justify-center shrink-0`}
                     style={{ boxShadow: `0 4px 20px ${r.glow}` }}
                   >
-                    <Icon className="w-7 h-7 text-[color:var(--text)]" strokeWidth={2} />
+                    <Icon className="w-7 h-7 text-white" strokeWidth={2} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-lg text-[color:var(--text)]">{r.title}</div>
-                    <p className="text-sm text-[color:var(--text)]/40 mt-0.5">{r.desc}</p>
+                    <div className="font-bold text-lg" style={{ color: 'var(--text)' }}>{r.title}</div>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{r.desc}</p>
                   </div>
                   <div className="w-9 h-9 rounded-full flex items-center justify-center transition-colors" style={{ background: 'var(--surface)' }}>
-                    <ArrowRight className="w-4 h-4 text-[color:var(--text)]/40 group-hover:text-[color:var(--text)]/70 transition-colors" />
+                    <ArrowRight className="w-4 h-4 transition-colors" style={{ color: 'var(--text-muted)' }} />
                   </div>
                 </div>
               </motion.button>
@@ -187,7 +187,7 @@ export default function RoleSelect({ onSelect, siteTitle, theme, onToggleTheme, 
             onChange={(e) => setRemember(e.target.checked)}
             className="w-4 h-4 accent-violet-500 rounded"
           />
-          <span className="text-sm text-[color:var(--text)]/30 font-medium">記住我</span>
+          <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>記住我</span>
         </motion.label>
       </div>
     </div>
