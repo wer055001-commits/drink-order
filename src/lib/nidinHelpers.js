@@ -27,13 +27,17 @@ export function parseNidinMenu(data) {
   const priceIdx = s.price ?? 4;
   const enableIdx = typeof s.is_enable !== 'undefined' ? s.is_enable : 15;
 
-  const rawItems = Object.entries(productJson.data)
-    .map(([, vals]) => ({
-      name: vals[nameIdx],
-      price: parseInt(vals[priceIdx]) || 0,
-      enabled: vals[enableIdx],
-    }))
-    .filter((p) => p.enabled && p.name && p.price > 0);
+  const allItems = Object.entries(productJson.data).map(([, vals]) => ({
+    name: vals[nameIdx],
+    price: parseInt(vals[priceIdx]) || 0,
+    enabled: vals[enableIdx],
+  }));
+  console.log('[parseNidinMenu] 總品項:', allItems.length, '啟用:', allItems.filter((p) => p.enabled).length);
+  console.log('[parseNidinMenu] 前 10 筆:', allItems.slice(0, 10));
+
+  // 放寬條件：只要有名字就保留（原本要求 enabled 且 price > 0）
+  const rawItems = allItems.filter((p) => p.name && p.price > 0);
+  console.log('[parseNidinMenu] 過濾後:', rawItems.length);
 
   // 解析尺寸前綴，依品項名稱分組
   const groups = {};
