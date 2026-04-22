@@ -168,28 +168,21 @@ function NidinPicker({ onSelectStore, onCancel }) {
       })
       .catch(() => {});
 
-    // 取得定位 + 附近品牌
+    // 取得定位 + 附近品牌（多重 fallback）
     getLocation()
       .then(async (loc) => {
         locationRef.current = loc;
-        try {
-          const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80`);
-          const data = await res.json();
-          const stores = data.stores || data.store_list || [];
+        const brandMap = new Map();
 
-          // 從附近店家萃取獨特品牌 + 算距離
-          const brandMap = new Map();
+        const addFromStores = (stores) => {
           stores.forEach((s) => {
             const brandName = s.brand_name || s.name;
             if (!brandName) return;
             const tags = (s.brand_tag_info || s.meal_tag_info || []).map((t) => t.name).join('');
             if (!isDrinkBrand(brandName, tags)) return;
-
             const sLat = parseFloat(s.lat ?? s.latitude ?? s.location?.lat ?? '');
             const sLng = parseFloat(s.lng ?? s.longitude ?? s.lon ?? s.location?.lng ?? '');
             const dist = !isNaN(sLat) && !isNaN(sLng) ? calcDistance(loc.lat, loc.lng, sLat, sLng) : s.distance;
-
-            // 同品牌只保留最近的那家
             if (!brandMap.has(brandName) || (dist != null && dist < brandMap.get(brandName).distance)) {
               brandMap.set(brandName, {
                 id: s.brand_id || s.id,
@@ -200,13 +193,58 @@ function NidinPicker({ onSelectStore, onCancel }) {
               });
             }
           });
+        };
 
-          const sorted = [...brandMap.values()]
-            .filter((b) => b.distance <= 15000)  // 15km 內
-            .sort((a, b) => a.distance - b.distance)
-            .slice(0, 10);
-          setNearbyBrands(sorted);
+        // 方法1：listByPositionNew 不帶 src_type
+        try {
+          const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80`);
+          const data = await res.json();
+          addFromStores(data.stores || data.store_list || []);
         } catch {}
+
+        // 方法2：listByPositionNew + src_type=3（飲料）
+        if (brandMap.size === 0) {
+          try {
+            const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80&src_type=3`);
+            const data = await res.json();
+            addFromStores(data.stores || data.store_list || []);
+          } catch {}
+        }
+
+        // 方法3：search/brand 搜飲料關鍵字
+        if (brandMap.size < 3) {
+          const keywords = ['飲料', '茶', '咖啡'];
+          for (const kw of keywords) {
+            try {
+              const res = await fetch('/api/nidin?path=search/brand', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, keyword: kw, shopper_id: null, src_type: 0, page: 1, count: 30 }),
+              });
+              const data = await res.json();
+              const list = data.brand?.list || [];
+              list.forEach((b) => {
+                if (!isDrinkBrand(b.name, (b.meal_tag_info || []).map((t) => t.name).join(''))) return;
+                const dist = b.distance ?? 999999;
+                if (!brandMap.has(b.name) || dist < brandMap.get(b.name).distance) {
+                  brandMap.set(b.name, {
+                    id: b.id,
+                    name: b.name,
+                    brand_code: b.brand_code,
+                    image: b.image,
+                    distance: dist,
+                  });
+                }
+              });
+            } catch {}
+          }
+        }
+
+        const sorted = [...brandMap.values()]
+          .filter((b) => b.distance <= 15000)
+          .sort((a, b) => a.distance - b.distance)
+          .slice(0, 10);
+        setNearbyBrands(sorted);
       })
       .catch(() => {})
       .finally(() => setNearbyLoading(false));
