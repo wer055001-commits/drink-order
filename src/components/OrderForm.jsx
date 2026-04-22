@@ -138,6 +138,8 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [step, setStep] = useState('search');  // 'search' | 'stores'
   const [query, setQuery] = useState('');
   const [allBrands, setAllBrands] = useState([]);
+  const [nearbyBrands, setNearbyBrands] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(true);
   const [stores, setStores] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [storeLoading, setStoreLoading] = useState(false);
@@ -145,27 +147,69 @@ function NidinPicker({ onSelectStore, onCancel }) {
   const [radiusKm, setRadiusKm] = useState(10);
   const locationRef = useRef(null);
 
-  // 掛載時：取得定位 + 品牌清單
+  // 掛載時：取得定位 + 品牌清單 + 附近品牌
   useEffect(() => {
-    getLocation().then((loc) => { locationRef.current = loc; }).catch(() => {});
+    const DRINK_TAGS = ['飲料', '手搖', '茶飲', '咖啡', '果汁', '奶茶', '飲品', '冰品', '茶'];
+    const isDrinkBrand = (name, tagsStr) =>
+      DRINK_TAGS.some((t) => tagsStr.includes(t) || (name || '').includes(t));
+
+    // 品牌清單
     fetch('/api/nidin?path=brands')
       .then((r) => r.json())
       .then((data) => {
-        const DRINK_TAGS = ['飲料', '手搖', '茶飲', '咖啡', '果汁', '奶茶', '飲品', '冰品'];
         const seen = new Set();
         const deduped = (data.brands || [])
+          .filter((b) => isDrinkBrand(b.name, (b.meal_tag_info || []).map((t) => t.name).join('')))
           .filter((b) => {
-            const tags = (b.meal_tag_info || []).map((t) => t.name).join('');
-            return DRINK_TAGS.some((t) => tags.includes(t) || (b.name || '').includes(t));
-          })
-          .filter((b) => {
-            const key = b.name;
-            if (seen.has(key)) return false;
-            seen.add(key); return true;
+            if (seen.has(b.name)) return false;
+            seen.add(b.name); return true;
           });
         setAllBrands(deduped);
       })
       .catch(() => {});
+
+    // 取得定位 + 附近品牌
+    getLocation()
+      .then(async (loc) => {
+        locationRef.current = loc;
+        try {
+          const res = await fetch(`/api/nidin?path=store/listByPositionNew&latitude=${loc.lat}&longitude=${loc.lng}&page=1&count=80`);
+          const data = await res.json();
+          const stores = data.stores || data.store_list || [];
+
+          // 從附近店家萃取獨特品牌 + 算距離
+          const brandMap = new Map();
+          stores.forEach((s) => {
+            const brandName = s.brand_name || s.name;
+            if (!brandName) return;
+            const tags = (s.brand_tag_info || s.meal_tag_info || []).map((t) => t.name).join('');
+            if (!isDrinkBrand(brandName, tags)) return;
+
+            const sLat = parseFloat(s.lat ?? s.latitude ?? s.location?.lat ?? '');
+            const sLng = parseFloat(s.lng ?? s.longitude ?? s.lon ?? s.location?.lng ?? '');
+            const dist = !isNaN(sLat) && !isNaN(sLng) ? calcDistance(loc.lat, loc.lng, sLat, sLng) : s.distance;
+
+            // 同品牌只保留最近的那家
+            if (!brandMap.has(brandName) || (dist != null && dist < brandMap.get(brandName).distance)) {
+              brandMap.set(brandName, {
+                id: s.brand_id || s.id,
+                name: brandName,
+                brand_code: s.brand_code,
+                image: s.brand_image || s.image,
+                distance: dist ?? 999999,
+              });
+            }
+          });
+
+          const sorted = [...brandMap.values()]
+            .filter((b) => b.distance <= 15000)  // 15km 內
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 10);
+          setNearbyBrands(sorted);
+        } catch {}
+      })
+      .catch(() => {})
+      .finally(() => setNearbyLoading(false));
   }, []);
 
   // 即時過濾品牌
@@ -280,17 +324,38 @@ function NidinPicker({ onSelectStore, onCancel }) {
             <span className="text-xs font-bold text-orange-500 w-12 text-right shrink-0">{radiusKm} km</span>
           </div>
 
-          {/* 熱門品牌快捷 */}
+          {/* 附近品牌 */}
           {!query.trim() && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold px-1" style={{ color: 'var(--text-muted)' }}>熱門品牌</p>
-              <div className="flex flex-wrap gap-2">
-                {['50嵐', '迷客夏', '清心福全', '茶湯會', 'CoCo', '鮮茶道', '大苑子', '可不可'].map((name) => (
-                  <button key={name} onClick={() => setQuery(name)}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors"
-                    style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
-                  >{name}</button>
-                ))}
+              <p className="text-xs font-semibold px-1 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                <MapPin className="w-3 h-3" /> 附近的飲料品牌
+              </p>
+              {nearbyLoading && <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>定位中，搜尋附近品牌...</p>}
+              {!nearbyLoading && nearbyBrands.length === 0 && (
+                <p className="text-sm text-center py-3" style={{ color: 'var(--text-muted)' }}>附近沒找到飲料店</p>
+              )}
+              <div className="max-h-72 overflow-y-auto space-y-1">
+                {nearbyBrands.map((b) => {
+                  // 從 allBrands 找完整品牌資料，才能正確 selectBrand
+                  const fullBrand = allBrands.find((x) => x.name === b.name) || b;
+                  return (
+                    <button key={b.name} onClick={() => selectBrand(fullBrand)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left cursor-pointer transition-colors"
+                      style={{ border: '1px solid var(--border)' }}
+                    >
+                      {b.image
+                        ? <img src={b.image} className="w-9 h-9 rounded-lg object-cover shrink-0" alt="" />
+                        : <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--surface)' }}><Store className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></div>
+                      }
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm" style={{ color: 'var(--text)' }}>{b.name}</div>
+                      </div>
+                      {b.distance != null && b.distance < 999999 && (
+                        <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--accent2)' }}>{formatDistance(b.distance)}</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
