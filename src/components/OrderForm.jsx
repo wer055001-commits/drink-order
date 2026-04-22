@@ -222,34 +222,61 @@ function NidinPicker({ onSelectStore, onCancel }) {
           } catch (e) { dbg(`方法2 錯誤:${e.message}`); }
         }
 
-        // 方法3：search/brand 搜飲料關鍵字
+        // 方法3：從 search/brand 拿到的品牌，併發查 stores 算距離
         if (brandMap.size < 3) {
+          const searchBrands = [];
           const keywords = ['飲料', '茶', '咖啡'];
           for (const kw of keywords) {
             try {
               const res = await fetch('/api/nidin?path=search/brand', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, keyword: kw, shopper_id: null, src_type: 0, page: 1, count: 30 }),
+                body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, keyword: kw, shopper_id: null, src_type: 0, page: 1, count: 20 }),
               });
               const data = await res.json();
-              const list = data.brand?.list || [];
-              dbg(`方法3-${kw} 品牌數:${list.length}`);
-              list.forEach((b) => {
+              (data.brand?.list || []).forEach((b) => {
                 if (!isDrinkBrand(b.name, (b.meal_tag_info || []).map((t) => t.name).join(''))) return;
-                const dist = b.distance ?? 999999;
-                if (!brandMap.has(b.name) || dist < brandMap.get(b.name).distance) {
-                  brandMap.set(b.name, {
-                    id: b.id,
-                    name: b.name,
-                    brand_code: b.brand_code,
-                    image: b.image,
-                    distance: dist,
-                  });
+                if (!searchBrands.find((x) => x.name === b.name)) searchBrands.push(b);
+              });
+            } catch {}
+          }
+          dbg(`方法3 取得 ${searchBrands.length} 個品牌，開始併發查分店`);
+
+          // 併發查每個品牌的分店（前 20 個）
+          const results = await Promise.allSettled(
+            searchBrands.slice(0, 20).map(async (b) => {
+              const res = await fetch(`/api/nidin?path=brand/${b.id}/stores`);
+              const d = await res.json();
+              const ss = d.stores || [];
+              let minDist = Infinity;
+              ss.forEach((s) => {
+                const sLat = parseFloat(s.lat ?? s.latitude ?? '');
+                const sLng = parseFloat(s.lng ?? s.longitude ?? s.lon ?? '');
+                if (!isNaN(sLat) && !isNaN(sLng)) {
+                  const d = calcDistance(loc.lat, loc.lng, sLat, sLng);
+                  if (d < minDist) minDist = d;
                 }
               });
-            } catch (e) { dbg(`方法3-${kw} 錯誤:${e.message}`); }
-          }
+              return { brand: b, distance: minDist };
+            })
+          );
+          let got = 0;
+          results.forEach((r) => {
+            if (r.status === 'fulfilled' && r.value.distance < Infinity) {
+              const { brand: b, distance } = r.value;
+              if (!brandMap.has(b.name) || distance < brandMap.get(b.name).distance) {
+                brandMap.set(b.name, {
+                  id: b.id,
+                  name: b.name,
+                  brand_code: b.brand_code,
+                  image: b.image,
+                  distance,
+                });
+                got++;
+              }
+            }
+          });
+          dbg(`方法3 算出距離 ${got} 筆`);
         }
 
         dbg(`總 brandMap:${brandMap.size}`);
