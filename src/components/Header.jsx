@@ -20,7 +20,7 @@ export default function Header({ activeSessions, ordersCount, role, onLogout, on
   }, [showMenu]);
 
   return (
-    <header className="sticky top-0 z-50" style={{ background: 'var(--header-bg)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)' }}>
+    <header className="sticky top-0 z-50" style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border)' }}>
       <div className="max-w-2xl mx-auto px-4 py-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

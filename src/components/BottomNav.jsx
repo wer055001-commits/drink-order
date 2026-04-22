@@ -29,9 +29,8 @@ export default function BottomNav({ activeTab, onTabChange, ordersCount, role })
         className="max-w-md mx-auto flex rounded-2xl overflow-hidden"
         style={{
           background: 'var(--nav-bg)',
-          backdropFilter: 'blur(20px)',
           border: '1px solid var(--border)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
         }}
       >
         {items.map((item) => {

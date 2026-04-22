@@ -6,10 +6,10 @@
 
 /* ── 暗色主題（極簡黑） ──────────────────── */
 :root, [data-theme="dark"] {
-  --bg: #0a0a0b;
-  --surface: rgba(255,255,255,0.05);
-  --surface-hover: rgba(255,255,255,0.1);
-  --border: rgba(255,255,255,0.1);
+  --bg: #0a0a0a;
+  --surface: #171717;
+  --surface-hover: #262626;
+  --border: #262626;
   --text: #fafafa;
   --text-secondary: rgba(250,250,250,0.75);
   --text-muted: rgba(250,250,250,0.45);
@@ -21,21 +21,21 @@
   --gradient-solid: #ffffff;
   --glow1: rgba(59,130,246,0.1);
   --glow2: rgba(255,255,255,0.04);
-  --header-bg: rgba(10,10,11,0.85);
-  --nav-bg: rgba(18,18,20,0.9);
-  --pill-bg: rgba(255,255,255,0.06);
-  --pill-border: rgba(255,255,255,0.12);
+  --header-bg: #0a0a0a;
+  --nav-bg: #171717;
+  --pill-bg: #171717;
+  --pill-border: #262626;
   --pill-text: #a1a1aa;
-  --input-bg: rgba(255,255,255,0.05);
-  --input-border: rgba(255,255,255,0.12);
+  --input-bg: #0a0a0a;
+  --input-border: #262626;
   --input-text: #fafafa;
   --input-placeholder: rgba(250,250,250,0.4);
-  --scrollbar: rgba(255,255,255,0.12);
-  --range-track: rgba(255,255,255,0.12);
+  --scrollbar: #262626;
+  --range-track: #262626;
   --card-shadow: none;
-  --role-bg: #0a0a0b;
+  --role-bg: #0a0a0a;
   --accent-rgb: 255,255,255;
-  --btn-text: #0a0a0b;
+  --btn-text: #0a0a0a;
 }
 
 /* ── 淺色主題（極簡白） ──────────────────── */
@@ -103,22 +103,7 @@ body.theme-transitioning *::after {
   transition: background-color 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.4s ease !important;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  top: -30%; left: -20%;
-  width: 70%; height: 70%;
-  background: radial-gradient(circle, var(--glow1) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
-}
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -20%; right: -20%;
-  width: 60%; height: 60%;
-  background: radial-gradient(circle, var(--glow2) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
-}
+/* 極簡風：移除背景光暈，乾淨簡潔 */
 
 #root { position: relative; z-index: 1; }
 
@@ -168,32 +153,16 @@ input[type="range"] {
 /* ── 共用元件 ─────────────────────────────── */
 .glass-card {
   background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: var(--card-shadow);
 }
 
 .glow-card {
   background: var(--surface);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
   box-shadow: var(--card-shadow);
-}
-.glow-card::before {
-  content: '';
-  position: absolute; inset: 0;
-  border-radius: 20px; padding: 1px;
-  background: var(--gradient);
-  opacity: 0.4;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
 }
 
 .btn-gradient {
