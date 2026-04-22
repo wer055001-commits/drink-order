@@ -7,17 +7,17 @@ const ROLES = [
     key: 'leader',
     icon: ClipboardList,
     title: '團主',
-    desc: '開團、管理訂單、結單分享',
-    gradient: 'from-stone-400 to-neutral-500',
-    glow: 'rgba(156,133,120,0.3)',
+    desc: '開團　管理訂單　結單分享',
+    gradient: 'from-amber-600 to-yellow-700',
+    glow: 'rgba(180,140,70,0.25)',
   },
   {
     key: 'user',
     icon: Coffee,
     title: '使用者',
-    desc: '點飲料、查看訂單',
-    gradient: 'from-slate-400 to-stone-400',
-    glow: 'rgba(125,139,136,0.3)',
+    desc: '點飲料　查看訂單',
+    gradient: 'from-stone-700 to-neutral-800',
+    glow: 'rgba(60,50,40,0.25)',
   },
 ];
 
