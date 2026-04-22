@@ -335,11 +335,10 @@ function NidinPicker({ onSelectStore, onCancel }) {
           } catch {}
         }
 
-        // 方法3：全台清單 + Haversine 篩選
+        // 方法3：全台清單 + Haversine 排序（不篩距離，顯示最近的 15 間）
         if (result.length === 0 && brand.id) {
           const res = await fetch(`/api/nidin?path=brand/${brand.id}/stores`);
           const data = await res.json();
-          const radiusM = radiusKm * 1000;
           result = (data.stores || [])
             .map((s) => {
               const sLat = parseFloat(s.lat ?? s.latitude ?? s.location?.lat ?? '');
@@ -347,8 +346,9 @@ function NidinPicker({ onSelectStore, onCancel }) {
               const dist = !isNaN(sLat) && !isNaN(sLng) ? calcDistance(loc.lat, loc.lng, sLat, sLng) : null;
               return { ...s, distance: dist };
             })
-            .filter((s) => s.distance !== null && s.distance <= radiusM)
-            .sort((a, b) => a.distance - b.distance);
+            .filter((s) => s.distance !== null)
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 15);
         }
       } else {
         if (brand.id) {
